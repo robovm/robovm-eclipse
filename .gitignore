@@ -1,0 +1,11 @@
+*~
+*.o
+a.out
+*.class
+.*
+/target/
+/ui/target/
+/feature/target/
+/update-site/target/
+/ui/lib/
+/tmp/
