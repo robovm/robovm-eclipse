@@ -6,13 +6,9 @@
     <maven>3.0</maven>
   </prerequisites>
 
-  <parent>
-    <groupId>org.robovm</groupId>
-    <artifactId>robovm-parent</artifactId>
-    <version>0.0.2-SNAPSHOT</version>
-  </parent>
-
+  <groupId>org.robovm</groupId>
   <artifactId>org.robovm.eclipse.parent</artifactId>
+  <version>0.0.2-SNAPSHOT</version>
   <name>RoboVM for Eclipse</name>
   <packaging>pom</packaging>
 
@@ -35,10 +31,8 @@
     </license>
   </licenses>
 
-  <distributionManagement>
-  </distributionManagement>
-
   <properties>
+    <robovm.version>${project.version}</robovm.version>
     <tycho.version>0.16.0</tycho.version>
     <tycho-extras.version>0.16.0</tycho-extras.version>
     <eclipse-site>http://download.eclipse.org/releases/indigo</eclipse-site>
@@ -84,6 +78,32 @@
 
   <build>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.0</version>
+        <configuration>
+          <remoteTagging>true</remoteTagging>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+          <source>1.6</source>
+          <target>1.6</target>
+          <debug>true</debug>
+          <optimize>true</optimize>
+          <showDeprecations>true</showDeprecations>
+          <encoding>UTF-8</encoding>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.4</version>
+      </plugin>
       <plugin>
         <groupId>org.eclipse.tycho</groupId>
         <artifactId>tycho-maven-plugin</artifactId>
