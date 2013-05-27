@@ -16,6 +16,17 @@
   <name>RoboVM for Eclipse</name>
   <packaging>pom</packaging>
 
+  <scm>
+    <url>https://github.com/robovm/robovm-eclipse</url>
+    <connection>scm:git:git://github.com/robovm/robovm-eclipse.git</connection>
+    <developerConnection>scm:git:git@github.com:robovm/robovm-eclipse.git</developerConnection>
+  </scm>
+
+  <issueManagement>
+    <system>GitHub</system>
+    <url>https://github.com/robovm/robovm-eclipse/issues</url>
+  </issueManagement>
+
   <licenses>
     <license>
       <name>GNU General Public License, version 2</name>
@@ -23,6 +34,9 @@
       <distribution>repo</distribution>
     </license>
   </licenses>
+
+  <distributionManagement>
+  </distributionManagement>
 
   <properties>
     <tycho.version>0.16.0</tycho.version>
