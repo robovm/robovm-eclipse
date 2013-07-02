@@ -113,42 +113,9 @@ public class RoboVMPreferencePage extends FieldEditorPreferencePage implements
             }
         });
         
-        final BoolFieldEditor useSystemLlvmEditor = new BoolFieldEditor(PREFERENCE_USE_SYSTEM_LLVM, "Use system LLVM", parent);
-        final RequiredDirectoryFieldEditor llvmHomeDirEditor = new RequiredDirectoryFieldEditor(PREFERENCE_LLVM_HOME_DIR, "LLVM home:", parent) {
-            @Override
-            protected boolean validateDir(File dir) {
-                File llc = new File(new File(dir, "bin"), "llc");
-                File opt = new File(new File(dir, "bin"), "opt");
-                return llc.exists() && llc.isFile() && llc.canExecute() 
-                    && opt.exists() && opt.isFile() && opt.canExecute();
-            }
-        };
-        llvmHomeDirEditor.setErrorMessage("LLVM home value is invalid");
-        addField(useSystemLlvmEditor);
-        addField(llvmHomeDirEditor);
-        
-        useSystemLlvmEditor.getCheckbox().addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                boolean b = useSystemLlvmEditor.getCheckbox().getSelection();
-                llvmHomeDirEditor.setEnabled(!b);
-                if (b) {
-                    llvmHomeDirEditor.setStringValue("");
-                } else {
-                    llvmHomeDirEditor.focus();
-                }
-                llvmHomeDirEditor.revalidate();
-                RoboVMPreferencePage.this.checkState();
-            }
-        });
-        
         if (RoboVMPlugin.getDefault().getPreferenceStore().getBoolean(PREFERENCE_USE_SYSTEM_ROBOVM)) {
             roboVMHomeFieldEditor.setEnabled(false);
             roboVMHomeFieldEditor.setStringValue("");
-        }
-        if (RoboVMPlugin.getDefault().getPreferenceStore().getBoolean(PREFERENCE_USE_SYSTEM_LLVM)) {
-            llvmHomeDirEditor.setEnabled(false);
-            llvmHomeDirEditor.setStringValue("");
         }
     }
     

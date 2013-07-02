@@ -57,8 +57,6 @@ import org.robovm.compiler.log.Logger;
 public class RoboVMPlugin extends AbstractUIPlugin {
 
     public static final String PLUGIN_ID = "org.robovm.eclipse";
-    public static final String PREFERENCE_USE_SYSTEM_LLVM = PLUGIN_ID + ".prefs.useSystemLlvm";
-    public static final String PREFERENCE_LLVM_HOME_DIR = PLUGIN_ID + ".prefs.llvmHomeDir";
     public static final String PREFERENCE_USE_SYSTEM_ROBOVM = PLUGIN_ID + ".prefs.useSystemRoboVM";
     public static final String PREFERENCE_ROBOVM_HOME_DIR = PLUGIN_ID + ".prefs.roboVMHomeDir";
     public static final String PREFERENCE_USE_SYSTEM_GCC = PLUGIN_ID + ".prefs.useSystemGcc";
@@ -196,19 +194,6 @@ public class RoboVMPlugin extends AbstractUIPlugin {
         return Config.Home.find();
     }
 
-    public static boolean useSystemLlvm() {
-        IPreferencesService prefs = Platform.getPreferencesService();
-        return prefs.getBoolean(PLUGIN_ID, PREFERENCE_USE_SYSTEM_LLVM, true, null);
-    }
-    
-    public static File getLlvmHomeDir() {
-        if (!useSystemLlvm()) {
-            IPreferencesService prefs = Platform.getPreferencesService();
-            return new File(prefs.getString(PLUGIN_ID, PREFERENCE_LLVM_HOME_DIR, null, null));
-        }
-        return null;
-    }
-    
     public static String getIncrementalBuildArch(IProject project) {
         IPreferencesService prefs = Platform.getPreferencesService();
         IScopeContext[] contexts = new IScopeContext[] {new ProjectScope(project), 
@@ -224,7 +209,7 @@ public class RoboVMPlugin extends AbstractUIPlugin {
     }
     
     public static Arch getDefaultArch() {
-        return Arch.getDefaultArch(getLlvmHomeDir());
+        return Arch.getDefaultArch();
     }
     
     public static Arch getArch(IProject project) {
@@ -239,7 +224,7 @@ public class RoboVMPlugin extends AbstractUIPlugin {
     }
     
     public static OS getDefaultOS() {
-        return OS.getDefaultOS(getLlvmHomeDir());
+        return OS.getDefaultOS();
     }
     
     public static OS getOS(IProject project) {

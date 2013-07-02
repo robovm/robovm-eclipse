@@ -17,12 +17,9 @@
 package org.robovm.eclipse.internal;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.Reader;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,10 +27,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import org.apache.commons.exec.CommandLine;
-import org.apache.commons.io.IOUtils;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -154,9 +149,6 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
             
             configBuilder.debug(true);
             configBuilder.home(RoboVMPlugin.getRoboVMHome());
-            if (!RoboVMPlugin.useSystemLlvm()) {
-                configBuilder.llvmHomeDir(RoboVMPlugin.getLlvmHomeDir());
-            }            
             configBuilder.logger(RoboVMPlugin.getConsoleLogger());
             if (bootclasspath != null) {
                 configBuilder.skipRuntimeLib(true);
