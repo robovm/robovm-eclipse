@@ -96,7 +96,6 @@ public class RoboVMClassBuilder extends IncrementalProjectBuilder {
         configBuilder.os(RoboVMPlugin.getOS(getProject()));
         configBuilder.arch(RoboVMPlugin.getArch(getProject()));
         
-        configBuilder.home(RoboVMPlugin.getRoboVMHome());
         configBuilder.logger(RoboVMPlugin.getConsoleLogger());
         
         for (IClasspathEntry entry : javaProject.getResolvedClasspath(false)) {
@@ -120,6 +119,7 @@ public class RoboVMClassBuilder extends IncrementalProjectBuilder {
         }
         
         try {
+            configBuilder.home(RoboVMPlugin.getRoboVMHome());
             Config config = configBuilder.build();
             RoboVMPlugin.consoleInfo("Building %d changed classes for target %s (%s)", 
                     changedClasses.size(), config.getOs(), config.getArch());
