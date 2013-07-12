@@ -33,8 +33,6 @@ public class RoboVMPreferenceInitializer extends AbstractPreferenceInitializer {
         IPreferenceStore store = RoboVMPlugin.getDefault().getPreferenceStore();
         store.setDefault(PREFERENCE_INCREMENTAL_BUILD_ARCH, ARCH_AUTO);
         store.setDefault(PREFERENCE_INCREMENTAL_BUILD_OS, OS_AUTO);
-        store.setDefault(PREFERENCE_USE_SYSTEM_ROBOVM, true);
-        store.setDefault(PREFERENCE_ROBOVM_HOME_DIR, "");
         store.setDefault(PREFERENCE_USE_SYSTEM_GCC, true);
         store.setDefault(PREFERENCE_GCC_BIN_DIR, "");
         store.setDefault(PREFERENCE_USE_SYSTEM_BINUTILS, true);

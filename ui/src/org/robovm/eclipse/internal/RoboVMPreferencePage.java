@@ -18,22 +18,12 @@ package org.robovm.eclipse.internal;
 
 import static org.robovm.eclipse.RoboVMPlugin.*;
 
-import java.io.File;
-
-import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.ComboFieldEditor;
-import org.eclipse.jface.preference.DirectoryFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
-import org.eclipse.swt.events.FocusAdapter;
-import org.eclipse.swt.events.FocusEvent;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.robovm.compiler.config.Arch;
-import org.robovm.compiler.config.Config;
 import org.robovm.compiler.config.OS;
 import org.robovm.eclipse.RoboVMPlugin;
 
@@ -75,102 +65,5 @@ public class RoboVMPreferencePage extends FieldEditorPreferencePage implements
                 {OS.linux.toString(), OS.linux.toString()}
         }, parent);
         addField(osFieldEditor);
-        
-        final BoolFieldEditor useBundledRoboVMEditor = new BoolFieldEditor(PREFERENCE_USE_SYSTEM_ROBOVM, "Use system RoboVM", parent);
-        final RequiredDirectoryFieldEditor roboVMHomeFieldEditor = new RequiredDirectoryFieldEditor(PREFERENCE_ROBOVM_HOME_DIR, "RoboVM home:", parent) {
-            @Override
-            protected boolean validateDir(File dir) {
-                try {
-                    Config.Home.validate(dir);
-                    return true;
-                } catch (IllegalArgumentException e) {
-                    return false;
-                }
-            }
-        };
-        roboVMHomeFieldEditor.setErrorMessage("RoboVM home value is invalid");
-        addField(useBundledRoboVMEditor);
-        addField(roboVMHomeFieldEditor);
-        
-        useBundledRoboVMEditor.getCheckbox().addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                boolean b = useBundledRoboVMEditor.getCheckbox().getSelection();
-                roboVMHomeFieldEditor.setEnabled(!b);
-                if (b) {
-                    roboVMHomeFieldEditor.setStringValue("");
-                } else {
-                    roboVMHomeFieldEditor.focus();
-                }
-                roboVMHomeFieldEditor.revalidate();
-                RoboVMPreferencePage.this.checkState();
-                if (!roboVMHomeFieldEditor.isValid()) {
-                    RoboVMPreferencePage.this.setErrorMessage(roboVMHomeFieldEditor.getErrorMessage());
-                }
-            }
-        });
-        
-        if (RoboVMPlugin.getDefault().getPreferenceStore().getBoolean(PREFERENCE_USE_SYSTEM_ROBOVM)) {
-            roboVMHomeFieldEditor.setEnabled(false);
-            roboVMHomeFieldEditor.setStringValue("");
-        }
-    }
-    
-    private static class BoolFieldEditor extends BooleanFieldEditor {
-        private final Composite parent;
-        
-        public BoolFieldEditor(String name, String label, Composite parent) {
-            super(name, label, parent);
-            this.parent = parent;
-        }
-
-        public Button getCheckbox() {
-            return getChangeControl(parent);
-        }
-    }
-    
-    private static class RequiredDirectoryFieldEditor extends DirectoryFieldEditor {
-        private final Composite parent;
-
-        public RequiredDirectoryFieldEditor(String name, String labelText,
-                Composite parent) {
-            super(name, labelText, parent);
-            this.parent = parent;
-            getTextControl(parent).addFocusListener(new FocusAdapter() {
-                @Override
-                public void focusLost(FocusEvent e) {
-                    revalidate();
-                }
-            });
-        }
-        
-        public void setEnabled(boolean enabled) {
-            super.setEnabled(enabled, parent);
-        }
-        
-        public void focus() {
-            getTextControl(parent).setFocus();
-        }
-        
-        public void revalidate() {
-            refreshValidState();
-        }
-        
-        @Override
-        protected boolean doCheckState() {
-            if (getTextControl().isEnabled()) {
-                String s = getStringValue();
-                if (s == null || s.trim().isEmpty()) {
-                    return false;
-                }
-                File f = new File(s);
-                return f.exists() && f.isDirectory() && validateDir(f);
-            }
-            return true;
-        }
-        
-        protected boolean validateDir(File dir) {
-            return true;
-        }
     }
 }

@@ -17,6 +17,7 @@
 package org.robovm.eclipse.internal;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,33 +41,37 @@ public class RoboVMCocoaTouchClasspathContainer implements IClasspathContainer {
     public static final IPath PATH = new Path(ID);
     
     public IClasspathEntry[] getClasspathEntries() {
-        Config.Home home = RoboVMPlugin.getRoboVMHome();
-        File f = home.getRtPath();
-        List<IClasspathEntry> entries = new ArrayList<IClasspathEntry>();
-        if (!home.isDev()) {
-            // ROBOVM_DEV_ROOT not set (rtPath points to $ROBOVM_HOME/lib/robovm-rt.jar).
-            File libDir = f.getParentFile();
-            entries.add(JavaCore.newLibraryEntry(
-                    new Path(new File(libDir, "robovm-objc.jar").getAbsolutePath()), 
-                    new Path(new File(libDir, "robovm-objc-sources.jar").getAbsolutePath()), 
-                    new Path(""), new IAccessRule[] {}, new IClasspathAttribute[] {}, false));
-            entries.add(JavaCore.newLibraryEntry(
-                    new Path(new File(libDir, "robovm-cocoatouch.jar").getAbsolutePath()), 
-                    new Path(new File(libDir, "robovm-cocoatouch-sources.jar").getAbsolutePath()), 
-                    new Path(""), new IAccessRule[] {}, new IClasspathAttribute[] {}, false));
-        } else {
-            // ROBOVM_DEV_ROOT has been set (rtPath points to $ROBOVM_DEV_ROOT/rt/target/robovm-rt-<version>.jar).
-            File rootDir = f.getParentFile().getParentFile().getParentFile();
-            entries.add(JavaCore.newLibraryEntry(
-                    new Path(new File(rootDir, "objc/target/classes").getAbsolutePath()), 
-                    new Path(new File(rootDir, "objc/src/main/java").getAbsolutePath()), 
-                    new Path(""), new IAccessRule[] {}, new IClasspathAttribute[] {}, false));
-            entries.add(JavaCore.newLibraryEntry(
-                    new Path(new File(rootDir, "cocoatouch/target/classes").getAbsolutePath()), 
-                    new Path(new File(rootDir, "cocoatouch/src/main/java").getAbsolutePath()), 
-                    new Path(""), new IAccessRule[] {}, new IClasspathAttribute[] {}, false));
-        }
-        return entries.toArray(new IClasspathEntry[entries.size()]);
+    	try {
+	        Config.Home home = RoboVMPlugin.getRoboVMHome();
+	        File f = home.getRtPath();
+	        List<IClasspathEntry> entries = new ArrayList<IClasspathEntry>();
+	        if (!home.isDev()) {
+	            // ROBOVM_DEV_ROOT not set (rtPath points to $ROBOVM_HOME/lib/robovm-rt.jar).
+	            File libDir = f.getParentFile();
+	            entries.add(JavaCore.newLibraryEntry(
+	                    new Path(new File(libDir, "robovm-objc.jar").getAbsolutePath()), 
+	                    new Path(new File(libDir, "robovm-objc-sources.jar").getAbsolutePath()), 
+	                    new Path(""), new IAccessRule[] {}, new IClasspathAttribute[] {}, false));
+	            entries.add(JavaCore.newLibraryEntry(
+	                    new Path(new File(libDir, "robovm-cocoatouch.jar").getAbsolutePath()), 
+	                    new Path(new File(libDir, "robovm-cocoatouch-sources.jar").getAbsolutePath()), 
+	                    new Path(""), new IAccessRule[] {}, new IClasspathAttribute[] {}, false));
+	        } else {
+	            // ROBOVM_DEV_ROOT has been set (rtPath points to $ROBOVM_DEV_ROOT/rt/target/robovm-rt-<version>.jar).
+	            File rootDir = f.getParentFile().getParentFile().getParentFile();
+	            entries.add(JavaCore.newLibraryEntry(
+	                    new Path(new File(rootDir, "objc/target/classes").getAbsolutePath()), 
+	                    new Path(new File(rootDir, "objc/src/main/java").getAbsolutePath()), 
+	                    new Path(""), new IAccessRule[] {}, new IClasspathAttribute[] {}, false));
+	            entries.add(JavaCore.newLibraryEntry(
+	                    new Path(new File(rootDir, "cocoatouch/target/classes").getAbsolutePath()), 
+	                    new Path(new File(rootDir, "cocoatouch/src/main/java").getAbsolutePath()), 
+	                    new Path(""), new IAccessRule[] {}, new IClasspathAttribute[] {}, false));
+	        }
+	        return entries.toArray(new IClasspathEntry[entries.size()]);
+    	} catch (IOException e) {
+    		throw new RuntimeException(e);
+    	}
     }
 
     public String getDescription() {

@@ -17,9 +17,20 @@
 package org.robovm.eclipse;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
+import java.util.Arrays;
 import java.util.Date;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.output.NullOutputStream;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.runtime.CoreException;
@@ -45,6 +56,11 @@ import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
+import org.rauschig.jarchivelib.ArchiveFormat;
+import org.rauschig.jarchivelib.Archiver;
+import org.rauschig.jarchivelib.ArchiverFactory;
+import org.rauschig.jarchivelib.CompressionType;
+import org.robovm.compiler.Version;
 import org.robovm.compiler.config.Arch;
 import org.robovm.compiler.config.Config;
 import org.robovm.compiler.config.OS;
@@ -57,8 +73,6 @@ import org.robovm.compiler.log.Logger;
 public class RoboVMPlugin extends AbstractUIPlugin {
 
     public static final String PLUGIN_ID = "org.robovm.eclipse";
-    public static final String PREFERENCE_USE_SYSTEM_ROBOVM = PLUGIN_ID + ".prefs.useSystemRoboVM";
-    public static final String PREFERENCE_ROBOVM_HOME_DIR = PLUGIN_ID + ".prefs.roboVMHomeDir";
     public static final String PREFERENCE_USE_SYSTEM_GCC = PLUGIN_ID + ".prefs.useSystemGcc";
     public static final String PREFERENCE_GCC_BIN_DIR = PLUGIN_ID + ".prefs.gccBinDir";
     public static final String PREFERENCE_USE_SYSTEM_BINUTILS = PLUGIN_ID + ".prefs.useSystemBinutils";
@@ -71,6 +85,7 @@ public class RoboVMPlugin extends AbstractUIPlugin {
     public static final String OS_AUTO = "auto";
 
     private static RoboVMPlugin plugin;
+    private static Config.Home roboVMHome = null;
     
     private boolean showConsoleOnWrite = true;
     private MessageConsole console;
@@ -180,20 +195,73 @@ public class RoboVMPlugin extends AbstractUIPlugin {
         return plugin.getStateLocation().toFile();
     }
 
-    public static boolean useSystemRoboVM() {
-        IPreferencesService prefs = Platform.getPreferencesService();
-        return prefs.getBoolean(PLUGIN_ID, PREFERENCE_USE_SYSTEM_ROBOVM, true, null);
+    public static File getBuildDir(String projectName) {
+        return new File(new File(getMetadataDir(), "build"), projectName);
     }
 
-    public static Config.Home getRoboVMHome() {
-        if (!useSystemRoboVM()) {
-            IPreferencesService prefs = Platform.getPreferencesService();
-            File dir = new File(prefs.getString(PLUGIN_ID, PREFERENCE_ROBOVM_HOME_DIR, null, null));
-            return new Config.Home(dir);
-        }
-        return Config.Home.find();
+    public static synchronized Config.Home getRoboVMHome() throws IOException {
+    	if (roboVMHome == null) {
+	    	if (System.getenv("ROBOVM_DEV_ROOT") != null) {
+	    		roboVMHome = Config.Home.find();
+	    	} else {
+		    	String version = Version.getVersion();
+		    	File homeDir = new File(getMetadataDir(), "robovm-" + version);
+		    	File distFile = new File(getMetadataDir(), "robovm-dist-" + version + ".tar.gz");
+		    	URL distUrl = RoboVMPlugin.class.getResource("/lib/robovm-dist.tar.gz");
+		    	if (homeDir.exists() && version.contains("SNAPSHOT")) {
+		    		byte[] oldMd5 = new byte[0];
+		    		if (distFile.exists()) {
+		    			oldMd5 = md5(distFile);
+		    		}
+					byte[] newMd5 = md5(distUrl);
+					if (!Arrays.equals(oldMd5, newMd5)) {
+						FileUtils.deleteDirectory(homeDir);
+					}
+		    	}
+		    	
+		    	if (!homeDir.exists()) {
+		    		// Copy the tar.gz to distFile and extract.
+		    		distFile.delete();
+		    		FileUtils.copyURLToFile(distUrl, distFile);
+		    		Archiver archiver = ArchiverFactory.createArchiver(ArchiveFormat.TAR, CompressionType.GZIP);
+		    		archiver.extract(distFile, distFile.getParentFile());
+		    	}
+		    	roboVMHome = new Config.Home(homeDir);
+	    	}
+    	}
+    	return roboVMHome;
     }
 
+    private static byte[] md5(File file) throws IOException {
+    	InputStream in = new FileInputStream(file);
+    	try {
+    		return md5(in);
+    	} finally {
+    		IOUtils.closeQuietly(in);
+    	}
+    }
+    
+    private static byte[] md5(URL url) throws IOException {
+    	InputStream in = url.openStream();
+    	try {
+    		return md5(in);
+    	} finally {
+    		IOUtils.closeQuietly(in);
+    	}
+    }
+    
+    private static byte[] md5(InputStream in) throws IOException {
+		MessageDigest digest;
+		try {
+			digest = MessageDigest.getInstance("md5");
+		} catch (NoSuchAlgorithmException e) {
+			throw new Error(e);
+		}
+		DigestInputStream dis = new DigestInputStream(in, digest);
+		IOUtils.copy(dis, new NullOutputStream());
+		return digest.digest();
+    }
+    
     public static String getIncrementalBuildArch(IProject project) {
         IPreferencesService prefs = Platform.getPreferencesService();
         IScopeContext[] contexts = new IScopeContext[] {new ProjectScope(project), 

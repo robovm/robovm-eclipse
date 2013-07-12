@@ -17,6 +17,7 @@
 package org.robovm.eclipse.internal;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
@@ -38,21 +39,25 @@ public class RoboVMClasspathContainer implements IClasspathContainer {
     public static final IPath PATH = new Path(ID);
     
     public IClasspathEntry[] getClasspathEntries() {
-        Config.Home home = RoboVMPlugin.getRoboVMHome();
-        File f = home.getRtPath();
-        IPath sourceAttachment = null;
-        if (!home.isDev()) {
-            // robovm-rt.jar. Use robovm-rt-sources.jar as source attachment.
-            sourceAttachment = new Path(new File(f.getParentFile(), "robovm-rt-sources.jar").getAbsolutePath());
-        } else {
-            // ROBOVM_DEV_ROOT has been set and rtPath is $ROBOVM_DEV_ROOT/rt/target/robovm-rt-<version>.jar. Use
-            // $ROBOVM_DEV_ROOT/rt/target/robovm-rt-<version>-sources.jar as source attachment.
-            sourceAttachment = new Path(f.getAbsolutePath().replaceAll("\\.jar$", "-sources.jar"));
-        }
-        return new IClasspathEntry[] {
-            JavaCore.newLibraryEntry(new Path(f.getAbsolutePath()), sourceAttachment, new Path(""),
-                    new IAccessRule[] {}, new IClasspathAttribute[] {}, false)
-        };
+    	try {
+	        Config.Home home = RoboVMPlugin.getRoboVMHome();
+	        File f = home.getRtPath();
+	        IPath sourceAttachment = null;
+	        if (!home.isDev()) {
+	            // robovm-rt.jar. Use robovm-rt-sources.jar as source attachment.
+	            sourceAttachment = new Path(new File(f.getParentFile(), "robovm-rt-sources.jar").getAbsolutePath());
+	        } else {
+	            // ROBOVM_DEV_ROOT has been set and rtPath is $ROBOVM_DEV_ROOT/rt/target/robovm-rt-<version>.jar. Use
+	            // $ROBOVM_DEV_ROOT/rt/target/robovm-rt-<version>-sources.jar as source attachment.
+	            sourceAttachment = new Path(f.getAbsolutePath().replaceAll("\\.jar$", "-sources.jar"));
+	        }
+	        return new IClasspathEntry[] {
+	            JavaCore.newLibraryEntry(new Path(f.getAbsolutePath()), sourceAttachment, new Path(""),
+	                    new IAccessRule[] {}, new IClasspathAttribute[] {}, false)
+	        };
+    	} catch (IOException e) {
+            throw new RuntimeException(e);
+    	}
     }
 
     public String getDescription() {

@@ -140,7 +140,7 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
             configBuilder.os(os);
             configBuilder.arch(arch);
             
-            File tmpDir = new File(RoboVMPlugin.getMetadataDir(), getJavaProjectName(configuration));
+            File tmpDir = RoboVMPlugin.getBuildDir(getJavaProjectName(configuration));
             tmpDir = new File(tmpDir, configuration.getName());
             tmpDir = new File(new File(tmpDir, os.toString()), arch.toString());
             if (mainTypeName != null) {
@@ -148,7 +148,6 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
             }
             
             configBuilder.debug(true);
-            configBuilder.home(RoboVMPlugin.getRoboVMHome());
             configBuilder.logger(RoboVMPlugin.getConsoleLogger());
             if (bootclasspath != null) {
                 configBuilder.skipRuntimeLib(true);
@@ -169,6 +168,7 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
             AppCompiler compiler = null;
             Target target = null;
             try {
+                configBuilder.home(RoboVMPlugin.getRoboVMHome());
                 config = configure(configBuilder, configuration, mode);
                 target = config.getTarget();
                 compiler = new AppCompiler(config);

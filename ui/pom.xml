@@ -15,10 +15,27 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
+        <groupId>org.rauschig</groupId>
+        <artifactId>jarchivelib</artifactId>
+        <version>0.2.2</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-compress</artifactId>
+        <version>1.5</version>
+      </dependency>
+      <dependency>
         <groupId>org.robovm</groupId>
         <artifactId>robovm-compiler</artifactId>
         <version>${robovm.version}</version>
         <classifier>nodep</classifier>
+      </dependency>
+      <dependency>
+        <groupId>org.robovm</groupId>
+        <artifactId>robovm-dist</artifactId>
+        <version>${robovm.version}</version>
+        <classifier>nocompiler</classifier>
+        <type>tar.gz</type>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -50,9 +67,23 @@
           <stripClassifier>true</stripClassifier>
           <artifactItems>
             <artifactItem>
+              <groupId>org.rauschig</groupId>
+              <artifactId>jarchivelib</artifactId>
+            </artifactItem>
+            <artifactItem>
+              <groupId>org.apache.commons</groupId>
+              <artifactId>commons-compress</artifactId>
+            </artifactItem>
+            <artifactItem>
               <groupId>org.robovm</groupId>
               <artifactId>robovm-compiler</artifactId>
               <classifier>nodep</classifier>
+            </artifactItem>
+            <artifactItem>
+              <groupId>org.robovm</groupId>
+              <artifactId>robovm-dist</artifactId>
+              <classifier>nocompiler</classifier>
+              <type>tar.gz</type>
             </artifactItem>
           </artifactItems>
         </configuration>
