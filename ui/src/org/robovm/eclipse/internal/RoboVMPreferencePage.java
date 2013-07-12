@@ -62,9 +62,6 @@ public class RoboVMPreferencePage extends FieldEditorPreferencePage implements
         ComboFieldEditor archFieldEditor = new ComboFieldEditor(PREFERENCE_INCREMENTAL_BUILD_ARCH, 
                 "Default arch:", new String[][] {
                 {"Auto (build for current host)", ARCH_AUTO},
-                {Arch.armv6.toString(), Arch.armv6.toString()},
-                {Arch.armv7.toString(), Arch.armv7.toString()},
-                {Arch.thumbv6.toString(), Arch.thumbv6.toString()},
                 {Arch.thumbv7.toString(), Arch.thumbv7.toString()},
                 {Arch.x86.toString(), Arch.x86.toString()}
         }, parent);
