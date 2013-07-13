@@ -18,8 +18,10 @@ package org.robovm.eclipse;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
@@ -27,7 +29,11 @@ import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.zip.GZIPInputStream;
 
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
@@ -56,10 +62,6 @@ import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
-import org.rauschig.jarchivelib.ArchiveFormat;
-import org.rauschig.jarchivelib.Archiver;
-import org.rauschig.jarchivelib.ArchiverFactory;
-import org.rauschig.jarchivelib.CompressionType;
 import org.robovm.compiler.Version;
 import org.robovm.compiler.config.Arch;
 import org.robovm.compiler.config.Config;
@@ -223,8 +225,9 @@ public class RoboVMPlugin extends AbstractUIPlugin {
 		    		// Copy the tar.gz to distFile and extract.
 		    		distFile.delete();
 		    		FileUtils.copyURLToFile(distUrl, distFile);
-		    		Archiver archiver = ArchiverFactory.createArchiver(ArchiveFormat.TAR, CompressionType.GZIP);
-		    		archiver.extract(distFile, distFile.getParentFile());
+		    		extractTarGz(distFile, distFile.getParentFile());
+//		    		Archiver archiver = ArchiverFactory.createArchiver(ArchiveFormat.TAR, CompressionType.GZIP);
+//		    		archiver.extract(distFile, distFile.getParentFile());
 		    	}
 		    	roboVMHome = new Config.Home(homeDir);
 	    	}
@@ -232,6 +235,38 @@ public class RoboVMPlugin extends AbstractUIPlugin {
     	return roboVMHome;
     }
 
+    private static void extractTarGz(File archive, File destDir) throws IOException {
+        TarArchiveInputStream in = null;
+        try {
+            in = new TarArchiveInputStream(new GZIPInputStream(new FileInputStream(archive)));
+            ArchiveEntry entry = null;
+            while ((entry = in.getNextEntry()) != null) {
+                File f = new File(destDir, entry.getName());
+                if (entry.isDirectory()) {
+                    f.mkdirs();
+                } else {
+                    f.getParentFile().mkdirs();
+                    OutputStream out = null;
+                    try {
+                        out = new FileOutputStream(f);
+                        IOUtils.copy(in, out);
+                    } finally {
+                        IOUtils.closeQuietly(out);
+                    }
+                }
+                if (entry instanceof TarArchiveEntry) {
+                    int mode = ((TarArchiveEntry) entry).getMode();
+                    if ((mode & 00100) > 0) {
+                        // Preserve execute permissions
+                        f.setExecutable(true, (mode & 00001) == 0);
+                    }
+                }
+            }
+        } finally {
+            IOUtils.closeQuietly(in);
+        }
+    }
+    
     private static byte[] md5(File file) throws IOException {
     	InputStream in = new FileInputStream(file);
     	try {

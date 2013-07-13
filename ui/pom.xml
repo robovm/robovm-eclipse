@@ -15,11 +15,6 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>org.rauschig</groupId>
-        <artifactId>jarchivelib</artifactId>
-        <version>0.2.2</version>
-      </dependency>
-      <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-compress</artifactId>
         <version>1.5</version>
@@ -66,10 +61,6 @@
           <stripVersion>true</stripVersion>
           <stripClassifier>true</stripClassifier>
           <artifactItems>
-            <artifactItem>
-              <groupId>org.rauschig</groupId>
-              <artifactId>jarchivelib</artifactId>
-            </artifactItem>
             <artifactItem>
               <groupId>org.apache.commons</groupId>
               <artifactId>commons-compress</artifactId>
