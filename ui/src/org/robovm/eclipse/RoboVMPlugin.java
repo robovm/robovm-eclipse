@@ -226,8 +226,6 @@ public class RoboVMPlugin extends AbstractUIPlugin {
 		    		distFile.delete();
 		    		FileUtils.copyURLToFile(distUrl, distFile);
 		    		extractTarGz(distFile, distFile.getParentFile());
-//		    		Archiver archiver = ArchiverFactory.createArchiver(ArchiveFormat.TAR, CompressionType.GZIP);
-//		    		archiver.extract(distFile, distFile.getParentFile());
 		    	}
 		    	roboVMHome = new Config.Home(homeDir);
 	    	}
