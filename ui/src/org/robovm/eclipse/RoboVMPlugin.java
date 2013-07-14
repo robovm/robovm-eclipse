@@ -202,35 +202,35 @@ public class RoboVMPlugin extends AbstractUIPlugin {
     }
 
     public static synchronized Config.Home getRoboVMHome() throws IOException {
-    	if (roboVMHome == null) {
-	    	if (System.getenv("ROBOVM_DEV_ROOT") != null) {
-	    		roboVMHome = Config.Home.find();
-	    	} else {
-		    	String version = Version.getVersion();
-		    	File homeDir = new File(getMetadataDir(), "robovm-" + version);
-		    	File distFile = new File(getMetadataDir(), "robovm-dist-" + version + ".tar.gz");
-		    	URL distUrl = RoboVMPlugin.class.getResource("/lib/robovm-dist.tar.gz");
-		    	if (homeDir.exists() && version.contains("SNAPSHOT")) {
-		    		byte[] oldMd5 = new byte[0];
-		    		if (distFile.exists()) {
-		    			oldMd5 = md5(distFile);
-		    		}
-					byte[] newMd5 = md5(distUrl);
-					if (!Arrays.equals(oldMd5, newMd5)) {
-						FileUtils.deleteDirectory(homeDir);
-					}
-		    	}
-		    	
-		    	if (!homeDir.exists()) {
-		    		// Copy the tar.gz to distFile and extract.
-		    		distFile.delete();
-		    		FileUtils.copyURLToFile(distUrl, distFile);
-		    		extractTarGz(distFile, distFile.getParentFile());
-		    	}
-		    	roboVMHome = new Config.Home(homeDir);
-	    	}
-    	}
-    	return roboVMHome;
+        if (roboVMHome == null) {
+            if (System.getenv("ROBOVM_DEV_ROOT") != null) {
+                roboVMHome = Config.Home.find();
+            } else {
+                String version = Version.getVersion();
+                File homeDir = new File(getMetadataDir(), "robovm-" + version);
+                File distFile = new File(getMetadataDir(), "robovm-dist-" + version + ".tar.gz");
+                URL distUrl = RoboVMPlugin.class.getResource("/lib/robovm-dist.tar.gz");
+                if (homeDir.exists() && version.contains("SNAPSHOT")) {
+                    byte[] oldMd5 = new byte[0];
+                    if (distFile.exists()) {
+                        oldMd5 = md5(distFile);
+                    }
+                    byte[] newMd5 = md5(distUrl);
+                    if (!Arrays.equals(oldMd5, newMd5)) {
+                        FileUtils.deleteDirectory(homeDir);
+                    }
+                }
+                
+                if (!homeDir.exists()) {
+                    // Copy the tar.gz to distFile and extract.
+                    distFile.delete();
+                    FileUtils.copyURLToFile(distUrl, distFile);
+                    extractTarGz(distFile, distFile.getParentFile());
+                }
+                roboVMHome = new Config.Home(homeDir);
+            }
+        }
+        return roboVMHome;
     }
 
     private static void extractTarGz(File archive, File destDir) throws IOException {
@@ -266,33 +266,33 @@ public class RoboVMPlugin extends AbstractUIPlugin {
     }
     
     private static byte[] md5(File file) throws IOException {
-    	InputStream in = new FileInputStream(file);
-    	try {
-    		return md5(in);
-    	} finally {
-    		IOUtils.closeQuietly(in);
-    	}
+        InputStream in = new FileInputStream(file);
+        try {
+            return md5(in);
+        } finally {
+            IOUtils.closeQuietly(in);
+        }
     }
     
     private static byte[] md5(URL url) throws IOException {
-    	InputStream in = url.openStream();
-    	try {
-    		return md5(in);
-    	} finally {
-    		IOUtils.closeQuietly(in);
-    	}
+        InputStream in = url.openStream();
+        try {
+            return md5(in);
+        } finally {
+            IOUtils.closeQuietly(in);
+        }
     }
     
     private static byte[] md5(InputStream in) throws IOException {
-		MessageDigest digest;
-		try {
-			digest = MessageDigest.getInstance("md5");
-		} catch (NoSuchAlgorithmException e) {
-			throw new Error(e);
-		}
-		DigestInputStream dis = new DigestInputStream(in, digest);
-		IOUtils.copy(dis, new NullOutputStream());
-		return digest.digest();
+        MessageDigest digest;
+        try {
+            digest = MessageDigest.getInstance("md5");
+        } catch (NoSuchAlgorithmException e) {
+            throw new Error(e);
+        }
+        DigestInputStream dis = new DigestInputStream(in, digest);
+        IOUtils.copy(dis, new NullOutputStream());
+        return digest.digest();
     }
     
     public static String getIncrementalBuildArch(IProject project) {
