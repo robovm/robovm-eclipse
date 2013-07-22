@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.robovm</groupId>
     <artifactId>org.robovm.eclipse.parent</artifactId>
-    <version>0.0.3.201307221004</version>
+    <version>0.0.4-SNAPSHOT</version>
   </parent>
 
   <artifactId>org.robovm.eclipse.ui</artifactId>
