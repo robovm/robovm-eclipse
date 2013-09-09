@@ -63,14 +63,14 @@ public class ProjectProperties {
             Group group = new Group(parent, SWT.NONE);
             group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
             group.setFont(parent.getFont());
-            group.setLayout(initGridLayout(new GridLayout(2, false), true));
+            group.setLayout(initGridLayout(new GridLayout(3, false), true));
             group.setText("Incremental build settings");
             composite = group;
         } else {
             composite = new Composite(parent, SWT.NONE);
             composite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
             composite.setFont(parent.getFont());
-            composite.setLayout(initGridLayout(new GridLayout(2, false), false));
+            composite.setLayout(initGridLayout(new GridLayout(3, false), false));
         }
         createControls(composite);
     }
@@ -125,7 +125,7 @@ public class ProjectProperties {
                 Arch.x86.toString()
         });
         archCombo.select(0);
-        archCombo.setLayoutData(new GridData(GridData.FILL, GridData.CENTER, true, false));
+        archCombo.setLayoutData(new GridData(GridData.FILL, GridData.CENTER, false, false));
         archCombo.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -140,6 +140,10 @@ public class ProjectProperties {
             }
         });
 
+        Label emptyLabel = new Label(parent, SWT.NONE);
+        GridData emptyLabelGridData = new GridData(GridData.END, GridData.END, true, false);
+        emptyLabel.setLayoutData(emptyLabelGridData);
+        
         Label osLabel = new Label(parent, SWT.NONE);
         osLabel.setFont(parent.getFont());
         osLabel.setText("OS:");
@@ -154,7 +158,7 @@ public class ProjectProperties {
                 OS.linux.toString()
         });
         osCombo.select(0);
-        osCombo.setLayoutData(new GridData(GridData.FILL, GridData.CENTER, true, false));
+        osCombo.setLayoutData(new GridData(GridData.FILL, GridData.CENTER, false, false));
         osCombo.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -171,8 +175,8 @@ public class ProjectProperties {
         
         Link prefsLink = new Link(parent, SWT.NONE);
         prefsLink.setText("<a>Configure default RoboVM settings...</a>");
-        GridData prefsLinkGridData = new GridData(GridData.END, GridData.END, false, false);
-        prefsLinkGridData.horizontalSpan = 2;
+        GridData prefsLinkGridData = new GridData(GridData.END, GridData.END, true, false);
+        prefsLinkGridData.horizontalSpan = 1;
         prefsLink.setLayoutData(prefsLinkGridData);
         prefsLink.addSelectionListener(new SelectionAdapter() {
             @Override
