@@ -9,9 +9,9 @@
       class="org.robovm.eclipse.internal.NewProjectWizard"
       finalPerspective="org.eclipse.jdt.ui.JavaPerspective"
       hasPages="true"
-      icon="icons/new_robovm_project.png"
+      icon="icons/new_robovm_console_project.png"
       id="org.robovm.eclipse.NewProjectWizard"
-      name="RoboVM Project"
+      name="RoboVM Console Project"
       preferredPerspectives="org.eclipse.jdt.ui.JavaPerspective"
       project="true"/>
   </extension>
@@ -23,9 +23,9 @@
       class="org.robovm.eclipse.internal.NewCocoaTouchProjectWizard"
       finalPerspective="org.eclipse.jdt.ui.JavaPerspective"
       hasPages="true"
-      icon="icons/new_robovm_cocoa_touch_project.png"
+      icon="icons/new_robovm_ios_project.png"
       id="org.robovm.eclipse.NewCocoaTouchProjectWizard"
-      name="RoboVM Cocoa Touch Project"
+      name="RoboVM iOS Project"
       preferredPerspectives="org.eclipse.jdt.ui.JavaPerspective"
       project="true"/>
   </extension>

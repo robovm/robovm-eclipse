@@ -56,7 +56,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
     protected NewJavaProjectWizardPageTwo page2;
     
     public NewProjectWizard() {
-        setWindowTitle("New RoboVM Project");
+        setWindowTitle("New RoboVM Console Project");
     }
     
     @Override
@@ -64,6 +64,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
         if (page1 == null) {
             page1 = createPageOne();
             page1.setTitle(page1.getTitle().replace("Java", "RoboVM"));
+            page1.setDescription(page1.getDescription().replace("Java", "RoboVM"));
         }
         addPage(page1);
         if (page2 == null) {

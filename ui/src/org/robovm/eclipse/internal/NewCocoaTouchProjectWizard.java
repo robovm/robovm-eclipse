@@ -49,7 +49,7 @@ public class NewCocoaTouchProjectWizard extends NewProjectWizard {
 
     public NewCocoaTouchProjectWizard() {
         super();
-        setWindowTitle("New RoboVM Cocoa Touch Project");
+        setWindowTitle("New RoboVM iOS Project");
     }
     
     @Override
