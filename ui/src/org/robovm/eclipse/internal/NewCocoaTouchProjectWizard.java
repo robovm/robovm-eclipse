@@ -41,6 +41,7 @@ import org.robovm.compiler.config.Arch;
 import org.robovm.compiler.config.Config.Builder;
 import org.robovm.compiler.config.Config.TargetType;
 import org.robovm.compiler.config.OS;
+import org.robovm.compiler.config.Resource;
 
 /**
  * 
@@ -104,6 +105,8 @@ public class NewCocoaTouchProjectWizard extends NewProjectWizard {
         File projectRoot = project.getLocation().toFile();
         File infoPList = new File(projectRoot, "Info.plist.xml");
         FileUtils.copyURLToFile(getClass().getResource("Info.plist.template.xml"), infoPList);
+        File resources = new File(projectRoot, "resources");
+        resources.mkdirs();
         
         configBuilder.os(OS.ios);
         configBuilder.arch(Arch.thumbv7);
@@ -111,6 +114,7 @@ public class NewCocoaTouchProjectWizard extends NewProjectWizard {
         configBuilder.mainClass("${app.mainclass}");
         configBuilder.executableName("${app.executable}");
         configBuilder.iosInfoPList(infoPList);
+        configBuilder.addResource(new Resource(resources, null));
     }
     
     public static class IOSPageOne extends RoboVMPageOne {
