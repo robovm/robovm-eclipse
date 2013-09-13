@@ -103,36 +103,7 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
             Config.Builder configBuilder = new Config.Builder();
             
             File projectRoot = getJavaProject(configuration).getProject().getLocation().toFile();
-            File propsFile = new File(projectRoot, "robovm.properties");
-            File localPropsFile = new File(projectRoot, "robovm.local.properties");
-            File configFile = new File(projectRoot, "robovm.xml");
-            if (configFile.exists()) {
-                if (propsFile.exists()) {
-                    try {
-                        configBuilder.addProperties(propsFile);
-                    } catch (IOException e) {
-                        RoboVMPlugin.log(e);
-                        throw new RuntimeException(e);
-                    }
-                }
-                if (localPropsFile.exists()) {
-                    try {
-                        configBuilder.addProperties(localPropsFile);
-                    } catch (IOException e) {
-                        RoboVMPlugin.log(e);
-                        throw new RuntimeException(e);
-                    }
-                }
-                try {
-                    configBuilder.read(configFile);
-                } catch (Exception e) {
-                    RoboVMPlugin.log(e);
-                    throw new RuntimeException(e);
-                }
-                // Ignore classpath entries in config XML file.
-                configBuilder.clearBootClasspathEntries();
-                configBuilder.clearClasspathEntries();
-            }
+            RoboVMPlugin.loadConfig(configBuilder, projectRoot);
             
             Arch arch = getArch(configuration, mode);
             OS os = getOS(configuration, mode);

@@ -249,4 +249,43 @@
       </enabledWhen>
     </page>
   </extension>
+  <extension point="org.eclipse.ui.commands">
+    <category
+            name="Category name"
+            description="Category description"
+            id="org.eclipse.ui.examples.contributions.commands.category">
+    </category>
+    <command
+            categoryId="org.eclipse.ui.examples.contributions.commands.category"
+            id="org.eclipse.ui.examples.contributions.view.count"
+            description="Foo bar desc"
+            name="Foo bar">
+    </command>
+  </extension>
+  <extension point="org.eclipse.ui.popupMenus">
+    <objectContribution
+        id="org.robovm.eclipse.contribution2"
+        nameFilter="*"
+        objectClass="org.eclipse.core.resources.IProject"
+        adaptable="true">
+      <menu
+          id="org.robovm.eclipse.RoboVMTools"
+          label="RoboVM Tools"
+          path="additions">
+        <separator name="group1" />
+        <separator name="group2" />
+        <separator name="group3" />
+        <separator name="group4" />
+    </menu>
+    <filter name="projectNature" value="org.robovm.eclipse.RoboVMNature"/>
+        <action
+            class="org.robovm.eclipse.internal.actions.CreateIPAAction"
+            enablesFor="1"
+            id="org.robovm.eclipse.CreateIPAAction"
+            label="Package for App Store/Ad-Hoc distribution..."
+            menubarPath="org.robovm.eclipse.RoboVMTools/group1"
+            tooltip="Packages an iOS app in an IPA archive for App Store or Ad-Hoc distribution">
+        </action>
+      </objectContribution>
+    </extension>
 </plugin>

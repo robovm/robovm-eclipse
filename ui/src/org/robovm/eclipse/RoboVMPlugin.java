@@ -339,6 +339,43 @@ public class RoboVMPlugin extends AbstractUIPlugin {
         return OS.valueOf(s);
     }
     
+    public static Config.Builder loadConfig(Config.Builder configBuilder,
+            File projectRoot) {
+        
+        File propsFile = new File(projectRoot, "robovm.properties");
+        File localPropsFile = new File(projectRoot, "robovm.local.properties");
+        File configFile = new File(projectRoot, "robovm.xml");
+        if (configFile.exists()) {
+            if (propsFile.exists()) {
+                try {
+                    configBuilder.addProperties(propsFile);
+                } catch (IOException e) {
+                    RoboVMPlugin.log(e);
+                    throw new RuntimeException(e);
+                }
+            }
+            if (localPropsFile.exists()) {
+                try {
+                    configBuilder.addProperties(localPropsFile);
+                } catch (IOException e) {
+                    RoboVMPlugin.log(e);
+                    throw new RuntimeException(e);
+                }
+            }
+            try {
+                configBuilder.read(configFile);
+            } catch (Exception e) {
+                RoboVMPlugin.log(e);
+                throw new RuntimeException(e);
+            }
+            // Ignore classpath entries in config XML file.
+            configBuilder.clearBootClasspathEntries();
+            configBuilder.clearClasspathEntries();
+        }
+        
+        return configBuilder;
+    }
+    
     private static String now() {
         DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM);
         return df.format(new Date());
