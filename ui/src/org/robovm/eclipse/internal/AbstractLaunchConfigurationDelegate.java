@@ -149,12 +149,17 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
                 monitor.worked(1);
                 
                 monitor.subTask("Building executable");
-                compiler.compile();
+                AppCompilerThread thread = new AppCompilerThread(compiler, monitor);
+                thread.compile();
                 if (monitor.isCanceled()) {
+                    RoboVMPlugin.consoleInfo("Build canceled");
                     return;
                 }
                 monitor.worked(1);
                 RoboVMPlugin.consoleInfo("Build done");
+            } catch (InterruptedException e) {
+                RoboVMPlugin.consoleInfo("Build canceled");
+                return;
             } catch (IOException e) {
                 RoboVMPlugin.consoleError("Build failed");
                 throw new CoreException(new Status(IStatus.ERROR, RoboVMPlugin.PLUGIN_ID,

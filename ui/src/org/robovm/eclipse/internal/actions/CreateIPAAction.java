@@ -43,6 +43,7 @@ import org.robovm.compiler.target.ios.IOSTarget;
 import org.robovm.compiler.target.ios.ProvisioningProfile;
 import org.robovm.compiler.target.ios.SigningIdentity;
 import org.robovm.eclipse.RoboVMPlugin;
+import org.robovm.eclipse.internal.AppCompilerThread;
 
 /**
  * 
@@ -114,7 +115,12 @@ public class CreateIPAAction implements IObjectActionDelegate {
                     }
                     
                     AppCompiler compiler = new AppCompiler(config);
-                    compiler.compile();
+                    AppCompilerThread thread = new AppCompilerThread(compiler, monitor);
+                    thread.compile();
+                    if (monitor != null && monitor.isCanceled()) {
+                        RoboVMPlugin.consoleInfo("Build canceled");
+                        return Status.CANCEL_STATUS;
+                    }
         
                     if (monitor != null) {
                         monitor.worked(1);

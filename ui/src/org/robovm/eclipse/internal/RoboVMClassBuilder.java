@@ -118,6 +118,7 @@ public class RoboVMClassBuilder extends IncrementalProjectBuilder {
             configBuilder.addClasspathEntry(outputPath.toFile());
         }
         
+        monitor.beginTask("Incremental build of changed classes", changedClasses.size());
         try {
             configBuilder.home(RoboVMPlugin.getRoboVMHome());
             Config config = configBuilder.build();
@@ -125,14 +126,20 @@ public class RoboVMClassBuilder extends IncrementalProjectBuilder {
                     changedClasses.size(), config.getOs(), config.getArch());
             ClassCompiler compiler = new ClassCompiler(config);
             for (String c : changedClasses) {
+                if (monitor.isCanceled()) {
+                    break;
+                }
                 Clazz clazz = config.getClazzes().load(c.replace('.', '/'));
                 compiler.compile(clazz);
+                monitor.worked(1);
             }
-            RoboVMPlugin.consoleInfo("Build done");
+            RoboVMPlugin.consoleInfo(monitor.isCanceled() ? "Build canceled" : "Build done");
         } catch (IOException e) {
             RoboVMPlugin.consoleError("Build failed");
             throw new CoreException(new Status(IStatus.ERROR, RoboVMPlugin.PLUGIN_ID,
                     "Build failed. Check the RoboVM console for more information.", e));
+        } finally {
+            monitor.done();
         }
         
         return null;
