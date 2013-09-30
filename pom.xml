@@ -8,7 +8,7 @@
 
   <groupId>org.robovm</groupId>
   <artifactId>org.robovm.eclipse.parent</artifactId>
-  <version>0.0.5-SNAPSHOT</version>
+  <version>0.0.5.201309300725</version>
   <name>RoboVM for Eclipse</name>
   <packaging>pom</packaging>
 
@@ -32,7 +32,7 @@
   </licenses>
 
   <properties>
-    <robovm.version>${project.version}</robovm.version>
+    <robovm.version>0.0.5</robovm.version>
     <tycho.version>0.16.0</tycho.version>
     <tycho-extras.version>0.16.0</tycho-extras.version>
     <eclipse-site>http://download.eclipse.org/releases/indigo</eclipse-site>
