@@ -193,7 +193,17 @@ public class RoboVMTab extends AbstractLaunchConfigurationTab {
         return null;
     }
     
+    protected void projectUpdated(IProject project) {
+        
+    }
+    
+    @Override
+    public boolean isValid(ILaunchConfiguration launchConfig) {
+        return getErrorMessage() == null;
+    }
+    
     private IProject checkParameters() {
+        IProject found = null;
         try {
             //test the project name first!
             String text = projectText.getText();
@@ -202,7 +212,6 @@ public class RoboVMTab extends AbstractLaunchConfigurationTab {
             } else if (text.matches("[a-zA-Z0-9_ \\.-]+") == false) {
                 setErrorMessage("Project name contains unsupported characters!");
             } else {
-                IProject found = null;
                 try {
                     IJavaProject javaProject = findProject(getRoboVMProjects(), text);
                     if (javaProject != null) {
@@ -218,13 +227,13 @@ public class RoboVMTab extends AbstractLaunchConfigurationTab {
                     setErrorMessage(String.format("There is no RoboVM project named '%1$s'",
                             text));
                 }
-
-                return found;
             }
+            
+            projectUpdated(found);
         } finally {
             updateLaunchConfigurationDialog();
         }
 
-        return null;
+        return found;
     }
 }
