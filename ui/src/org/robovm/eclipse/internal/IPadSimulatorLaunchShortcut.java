@@ -26,7 +26,7 @@ public class IPadSimulatorLaunchShortcut extends IOSSimulatorLaunchShortcut {
 
     @Override
     protected Family getFamily() {
-        return Family.ipad;
+        return Family.iPadRetina;
     }
     
 }

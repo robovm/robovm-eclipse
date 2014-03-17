@@ -26,7 +26,7 @@ public class IPhoneSimulatorLaunchShortcut extends IOSSimulatorLaunchShortcut {
 
     @Override
     protected Family getFamily() {
-        return Family.iphone;
+        return Family.iPhoneRetina4Inch;
     }
     
 }

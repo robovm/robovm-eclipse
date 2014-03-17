@@ -87,11 +87,13 @@ public class IOSSimulatorLaunchConfigurationTabGroup extends AbstractLaunchConfi
             familyLabel.setText("Device family:");
             familyLabel.setLayoutData(new GridData(GridData.BEGINNING, GridData.CENTER, false, false));
 
+            Family[] families = Family.values();
+            String[] familiesDisplayNames = new String[families.length];
+            for (int i = 0; i < familiesDisplayNames.length; i++) {
+                familiesDisplayNames[i] = families[i].getDisplayName();
+            }
             familyCombo = new Combo(group, SWT.READ_ONLY | SWT.BORDER);
-            familyCombo.setItems(new String[] {
-                    "iPhone", 
-                    "iPad"
-            });
+            familyCombo.setItems(familiesDisplayNames);
             familyCombo.select(0);
             familyCombo.setLayoutData(new GridData(GridData.FILL, GridData.CENTER, true, false));
             familyCombo.addSelectionListener(new SelectionAdapter() {
@@ -129,10 +131,16 @@ public class IOSSimulatorLaunchConfigurationTabGroup extends AbstractLaunchConfi
         public void initializeFrom(ILaunchConfiguration config) {
             super.initializeFrom(config);
             try {
-                String v = config.getAttribute(IOSSimulatorLaunchConfigurationDelegate.ATTR_IOS_SIM_FAMILY, Family.iphone.toString());
+                String v = config.getAttribute(IOSSimulatorLaunchConfigurationDelegate.ATTR_IOS_SIM_FAMILY, Family.iPhoneRetina4Inch.name());
+                Family family = null;
+                try {
+                    family = Family.valueOf(v);
+                } catch (IllegalArgumentException e) {
+                    family = Family.iPhoneRetina4Inch;
+                }
                 String[] items = familyCombo.getItems();
                 for (int i = 0; i < items.length; i++) {
-                    if (items[i].equalsIgnoreCase(v)) {
+                    if (items[i].equals(family.getDisplayName())) {
                         familyCombo.select(i);
                         break;
                     }
@@ -158,8 +166,9 @@ public class IOSSimulatorLaunchConfigurationTabGroup extends AbstractLaunchConfi
         @Override
         public void performApply(ILaunchConfigurationWorkingCopy wc) {
             super.performApply(wc);
-            wc.setAttribute(IOSSimulatorLaunchConfigurationDelegate.ATTR_IOS_SIM_FAMILY, 
-                    familyCombo.getItem(familyCombo.getSelectionIndex()).toLowerCase());
+            int familyIndex = familyCombo.getSelectionIndex();
+            Family family = Family.values()[familyIndex];
+            wc.setAttribute(IOSSimulatorLaunchConfigurationDelegate.ATTR_IOS_SIM_FAMILY, family.name());
             int sdkIndex = sdkCombo.getSelectionIndex();
             String sdk = sdkIndex == 0 ? null : sdkCombo.getItem(sdkIndex);
             wc.setAttribute(IOSSimulatorLaunchConfigurationDelegate.ATTR_IOS_SIM_SDK, sdk);
@@ -168,7 +177,7 @@ public class IOSSimulatorLaunchConfigurationTabGroup extends AbstractLaunchConfi
         @Override
         public void setDefaults(ILaunchConfigurationWorkingCopy wc) {
             super.setDefaults(wc);
-            wc.setAttribute(IOSSimulatorLaunchConfigurationDelegate.ATTR_IOS_SIM_FAMILY, Family.iphone.toString());
+            wc.setAttribute(IOSSimulatorLaunchConfigurationDelegate.ATTR_IOS_SIM_FAMILY, Family.iPhoneRetina4Inch.name());
             wc.setAttribute(IOSSimulatorLaunchConfigurationDelegate.ATTR_IOS_SIM_SDK, (String) null);
         }
         
