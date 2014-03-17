@@ -41,6 +41,8 @@ public class IOSDeviceLaunchConfigurationDelegate extends AbstractLaunchConfigur
     public static final String ATTR_IOS_DEVICE_PROVISIONING_PROFILE = 
             RoboVMPlugin.PLUGIN_ID + ".IOS_DEVICE_PROVISIONING_PROFILE";
 
+    public static final String SIGNING_ID_SKIP_SIGNING = "SkipSigning";
+    
     @Override
     protected Arch getArch(ILaunchConfiguration configuration, String mode) {
         return Arch.thumbv7;
@@ -58,11 +60,15 @@ public class IOSDeviceLaunchConfigurationDelegate extends AbstractLaunchConfigur
         configBuilder.targetType(TargetType.ios);
         String signingId = configuration.getAttribute(ATTR_IOS_DEVICE_SIGNING_ID, (String) null);
         String profile = configuration.getAttribute(ATTR_IOS_DEVICE_PROVISIONING_PROFILE, (String) null);
-        if (signingId != null) {
-            configBuilder.iosSignIdentity(SigningIdentity.find(SigningIdentity.list(), signingId));
-        }
-        if (profile != null) {
-            configBuilder.iosProvisioningProfile(ProvisioningProfile.find(ProvisioningProfile.list(), profile));
+        if (SIGNING_ID_SKIP_SIGNING.equals(signingId)) {
+            configBuilder.iosSkipSigning(true);
+        } else {
+            if (signingId != null) {
+                configBuilder.iosSignIdentity(SigningIdentity.find(SigningIdentity.list(), signingId));
+            }
+            if (profile != null) {
+                configBuilder.iosProvisioningProfile(ProvisioningProfile.find(ProvisioningProfile.list(), profile));
+            }
         }
         
         return configBuilder.build();

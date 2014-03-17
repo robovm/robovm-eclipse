@@ -16,7 +16,6 @@
  */
 package org.robovm.eclipse.internal;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
@@ -36,9 +35,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.robovm.compiler.target.ios.ProvisioningProfile;
-import org.robovm.compiler.target.ios.SDK;
 import org.robovm.compiler.target.ios.SigningIdentity;
-import org.robovm.compiler.target.ios.IOSSimulatorLaunchParameters.Family;
 import org.robovm.eclipse.RoboVMPlugin;
 
 /**
@@ -66,9 +63,10 @@ public class IOSDeviceLaunchConfigurationTabGroup extends AbstractLaunchConfigur
         }
         
         private String[] readSigningIdentities() {
-            String[] result = new String[signingIdentities.size() + 1];
+            String[] result = new String[signingIdentities.size() + 2];
             int i = 0;
-            result[i++] = "Auto (starts with 'iPhone Developer')";
+            result[i++] = "Auto (must start with 'iPhone Developer')";
+            result[i++] = "Don't sign";
             for (SigningIdentity sid : signingIdentities) {
                 result[i++] = sid.getName();
             }
@@ -147,34 +145,30 @@ public class IOSDeviceLaunchConfigurationTabGroup extends AbstractLaunchConfigur
             
             try {
                 String v = config.getAttribute(IOSDeviceLaunchConfigurationDelegate.ATTR_IOS_DEVICE_SIGNING_ID, (String) null);
-                int idx = -1;
-                if (v != null) {
+                if (IOSDeviceLaunchConfigurationDelegate.SIGNING_ID_SKIP_SIGNING.equals(v)) {
+                    signingIdCombo.select(1);
+                } else if (v != null) {
                     try {
                         SigningIdentity signingIdentity = SigningIdentity.find(signingIdentities, v);
-                        idx = signingIdentities.indexOf(signingIdentity);
+                        int idx = signingIdentities.indexOf(signingIdentity);
+                        signingIdCombo.select(idx + 2);
                     } catch (IllegalArgumentException e) {
                         // Ignore
                     }
-                }
-                if (idx != -1) {
-                    signingIdCombo.select(idx + 1);
                 }
             } catch (CoreException e) {
                 RoboVMPlugin.log(e);
             }
             try {
                 String v = config.getAttribute(IOSDeviceLaunchConfigurationDelegate.ATTR_IOS_DEVICE_PROVISIONING_PROFILE, (String) null);
-                int idx = -1;
                 if (v != null) {
                     try {
                         ProvisioningProfile profile = ProvisioningProfile.find(provisioningProfiles, v);
-                        idx = provisioningProfiles.indexOf(profile);
+                        int idx = provisioningProfiles.indexOf(profile);
+                        profileCombo.select(idx + 1);
                     } catch (IllegalArgumentException e) {
                         // Ignore
                     }
-                }
-                if (idx != -1) {
-                    profileCombo.select(idx + 1);
                 }
             } catch (CoreException e) {
                 RoboVMPlugin.log(e);
@@ -184,10 +178,16 @@ public class IOSDeviceLaunchConfigurationTabGroup extends AbstractLaunchConfigur
         @Override
         public void performApply(ILaunchConfigurationWorkingCopy wc) {
             super.performApply(wc);
+            
             int signingIdIndex = signingIdCombo.getSelectionIndex();
-            SigningIdentity signingId = signingIdIndex == 0 ? null : signingIdentities.get(signingIdIndex - 1);
-            wc.setAttribute(IOSDeviceLaunchConfigurationDelegate.ATTR_IOS_DEVICE_SIGNING_ID, 
-                    signingId != null ? signingId.getFingerprint() : null);
+            String signingId = null;
+            if (signingIdIndex == 1) {
+                signingId = IOSDeviceLaunchConfigurationDelegate.SIGNING_ID_SKIP_SIGNING;
+            } else if (signingIdIndex >= 2) {
+                signingId = signingIdentities.get(signingIdIndex - 2).getFingerprint();
+            }
+            wc.setAttribute(IOSDeviceLaunchConfigurationDelegate.ATTR_IOS_DEVICE_SIGNING_ID, signingId);
+            
             int profileIndex = profileCombo.getSelectionIndex();
             ProvisioningProfile profile = profileIndex == 0 ? null : provisioningProfiles.get(profileIndex - 1);
             wc.setAttribute(IOSDeviceLaunchConfigurationDelegate.ATTR_IOS_DEVICE_PROVISIONING_PROFILE, 
@@ -198,7 +198,7 @@ public class IOSDeviceLaunchConfigurationTabGroup extends AbstractLaunchConfigur
         public void setDefaults(ILaunchConfigurationWorkingCopy wc) {
             super.setDefaults(wc);
             wc.setAttribute(IOSDeviceLaunchConfigurationDelegate.ATTR_IOS_DEVICE_SIGNING_ID, (String) null);
-            wc.setAttribute(IOSDeviceLaunchConfigurationDelegate.ATTR_IOS_DEVICE_SIGNING_ID, (String) null);
+            wc.setAttribute(IOSDeviceLaunchConfigurationDelegate.ATTR_IOS_DEVICE_PROVISIONING_PROFILE, (String) null);
         }
         
     }
