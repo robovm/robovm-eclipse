@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.exec.CommandLine;
+import org.apache.commons.io.FileUtils;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -139,6 +140,10 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
             AppCompiler compiler = null;
             Target target = null;
             try {
+                RoboVMPlugin.consoleInfo("Cleaning output dir " + tmpDir.getAbsolutePath());
+                FileUtils.deleteDirectory(tmpDir);
+                tmpDir.mkdirs();
+
                 configBuilder.home(RoboVMPlugin.getRoboVMHome());
                 config = configure(configBuilder, configuration, mode);
                 target = config.getTarget();
