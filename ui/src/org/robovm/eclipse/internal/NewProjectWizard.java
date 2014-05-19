@@ -164,7 +164,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
         
         @Override
         public String getCompilerCompliance() {
-            return JavaCore.VERSION_1_6;
+            return JavaCore.VERSION_1_7;
         }
         @Override
         public IClasspathEntry[] getDefaultClasspathEntries() {
