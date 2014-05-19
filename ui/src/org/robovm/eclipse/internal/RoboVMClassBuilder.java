@@ -16,6 +16,7 @@
  */
 package org.robovm.eclipse.internal;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,8 +38,10 @@ import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.robovm.compiler.ClassCompiler;
+import org.robovm.compiler.Version;
 import org.robovm.compiler.clazz.Clazz;
 import org.robovm.compiler.config.Config;
+import org.robovm.compiler.config.Config.Home;
 import org.robovm.compiler.config.Config.TargetType;
 import org.robovm.eclipse.RoboVMPlugin;
 
@@ -86,45 +89,48 @@ public class RoboVMClassBuilder extends IncrementalProjectBuilder {
             }
         }
         
-        Config.Builder configBuilder = new Config.Builder();
-        configBuilder.skipLinking(true);
-        configBuilder.skipRuntimeLib(true);
-        configBuilder.debug(true);
-        
-        // Use console target always since we're only going to compile anyway and not link.
-        configBuilder.targetType(TargetType.console);
-        configBuilder.os(RoboVMPlugin.getOS(getProject()));
-        configBuilder.arch(RoboVMPlugin.getArch(getProject()));
-        
-        configBuilder.logger(RoboVMPlugin.getConsoleLogger());
-        
-        for (IClasspathEntry entry : javaProject.getResolvedClasspath(false)) {
-            if (entry.getEntryKind() != IClasspathEntry.CPE_SOURCE) {
-                IPath path = entry.getPath();
-                IResource member = root.findMember(path);
-                if (member != null) {
-                    configBuilder.addClasspathEntry(member.getLocation().toFile());
-                } else {
-                    if (path.toString().contains("/robovm-rt.jar") 
-                            || path.toString().contains("/rt/target/classes/")) {
-                        configBuilder.addBootClasspathEntry(path.toFile());
+        try {
+            Home home = RoboVMPlugin.getRoboVMHome();
+            Config.Builder configBuilder = new Config.Builder();
+            configBuilder.skipLinking(true);
+            configBuilder.skipRuntimeLib(true);
+            configBuilder.debug(true);
+            
+            // Use console target always since we're only going to compile anyway and not link.
+            configBuilder.targetType(TargetType.console);
+            configBuilder.os(RoboVMPlugin.getOS(getProject()));
+            configBuilder.arch(RoboVMPlugin.getArch(getProject()));
+            
+            configBuilder.logger(RoboVMPlugin.getConsoleLogger());
+            
+            for (IClasspathEntry entry : javaProject.getResolvedClasspath(false)) {
+                if (entry.getEntryKind() != IClasspathEntry.CPE_SOURCE) {
+                    IPath path = entry.getPath();
+                    IResource member = root.findMember(path);
+                    if (member != null) {
+                        configBuilder.addClasspathEntry(member.getLocation().toFile());
                     } else {
-                        configBuilder.addClasspathEntry(path.toFile());
+                        if (path.toString().endsWith("/robovm-rt.jar") 
+                                || path.toString().endsWith("/robovm-rt-" + Version.getVersion() + ".jar")
+                                || home.getRtPath().equals(path.toFile())) {
+                            configBuilder.addBootClasspathEntry(path.toFile());
+                        } else {
+                            configBuilder.addClasspathEntry(path.toFile());
+                        }
                     }
                 }
             }
-        }
-        for (IPath outputPath : outputPaths) {
-            configBuilder.addClasspathEntry(outputPath.toFile());
-        }
-        
-        monitor.beginTask("Incremental build of changed classes", changedClasses.size());
-        try {
-            configBuilder.home(RoboVMPlugin.getRoboVMHome());
+            for (IPath outputPath : outputPaths) {
+                configBuilder.addClasspathEntry(outputPath.toFile());
+            }
+            
+            monitor.beginTask("Incremental build of changed classes", changedClasses.size());
+            configBuilder.home(home);
             Config config = configBuilder.build();
             RoboVMPlugin.consoleInfo("Building %d changed classes for target %s (%s)", 
                     changedClasses.size(), config.getOs(), config.getArch());
             ClassCompiler compiler = new ClassCompiler(config);
+            List<Clazz> compiledClazzes = new ArrayList<Clazz>();
             for (String c : changedClasses) {
                 if (monitor.isCanceled()) {
                     break;
@@ -132,7 +138,24 @@ public class RoboVMClassBuilder extends IncrementalProjectBuilder {
                 Clazz clazz = config.getClazzes().load(c.replace('.', '/'));
                 compiler.compile(clazz);
                 monitor.worked(1);
+                compiledClazzes.add(clazz);
             }
+            
+            /*
+             * Set the modified time of the object files for all compiled
+             * class to 'now'. Since we don't compile classes in the order of 
+             * dependency without this some classes may have to be recompiled 
+             * on the next launch since if depend on classes that were compiled 
+             * later by this builder.
+             */
+            long lastModified = System.currentTimeMillis();
+            for (Clazz clazz : compiledClazzes) {
+                File oFile = config.getOFile(clazz);
+                if (oFile.exists()) {
+                    oFile.setLastModified(lastModified);
+                }
+            }
+            
             RoboVMPlugin.consoleInfo(monitor.isCanceled() ? "Build canceled" : "Build done");
         } catch (IOException e) {
             RoboVMPlugin.consoleError("Build failed");
