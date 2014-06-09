@@ -33,8 +33,8 @@
 
   <properties>
     <robovm.version>${project.version}</robovm.version>
-    <tycho.version>0.16.0</tycho.version>
-    <tycho-extras.version>0.16.0</tycho-extras.version>
+    <tycho.version>0.20.0</tycho.version>
+    <tycho-extras.version>0.20.0</tycho-extras.version>
     <eclipse-site>http://download.eclipse.org/releases/indigo</eclipse-site>
   </properties>
 

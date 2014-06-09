@@ -17,6 +17,11 @@
 package org.robovm.eclipse.internal.actions;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -28,6 +33,7 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.launching.IRuntimeClasspathEntry;
 import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
@@ -74,22 +80,21 @@ public class CreateIPAAction implements IObjectActionDelegate {
         if (dialog.open() != Window.OK) {
             return;
         }
-        
+
         final String destDir = dialog.getDestinationDir();
         final String signingIdentity = dialog.getSigningIdentity();
         final String provisioningProfile = dialog.getProvisioningProfile();
-        
+
         new Job("Package for App Store/Ad-Hoc distribution") {
-            
+
             @Override
             protected IStatus run(IProgressMonitor monitor) {
                 try {
                     RoboVMPlugin.consoleInfo("Creating package in " + destDir + " ...");
-                    
                     if (monitor != null) {
                         monitor.beginTask("Package for App Store/Ad-Hoc distribution", 4);
                     }
-                    
+
                     File projectRoot = project.getLocation().toFile();
                     Config.Builder configBuilder = new Config.Builder();
                     RoboVMPlugin.loadConfig(configBuilder, projectRoot);
@@ -99,21 +104,22 @@ public class CreateIPAAction implements IObjectActionDelegate {
                     configBuilder.installDir(new File(destDir));
                     configBuilder.iosSignIdentity(SigningIdentity.find(SigningIdentity.list(), signingIdentity));
                     if (provisioningProfile != null) {
-                        configBuilder.iosProvisioningProfile(ProvisioningProfile.find(ProvisioningProfile.list(), provisioningProfile));
+                        configBuilder.iosProvisioningProfile(ProvisioningProfile.find(ProvisioningProfile.list(),
+                                provisioningProfile));
                     }
-                    
+
                     IJavaProject javaProject = JavaCore.create(project);
-                    for (String p : JavaRuntime.computeDefaultRuntimeClassPath(javaProject)) {
-                        configBuilder.addClasspathEntry(new File(p));
+                    for (String entry : getClasspath(javaProject)) {
+                        configBuilder.addClasspathEntry(new File(entry));
                     }
-                
+                    //
                     configBuilder.home(RoboVMPlugin.getRoboVMHome());
                     Config config = configBuilder.build();
-                    
+
                     if (monitor != null) {
                         monitor.worked(1);
                     }
-                    
+
                     AppCompiler compiler = new AppCompiler(config);
                     AppCompilerThread thread = new AppCompilerThread(compiler, monitor);
                     thread.compile();
@@ -121,7 +127,7 @@ public class CreateIPAAction implements IObjectActionDelegate {
                         RoboVMPlugin.consoleInfo("Build canceled");
                         return Status.CANCEL_STATUS;
                     }
-        
+
                     if (monitor != null) {
                         monitor.worked(1);
                     }
@@ -152,6 +158,42 @@ public class CreateIPAAction implements IObjectActionDelegate {
         }.schedule();
     }
 
+    private String[] getClasspath(IJavaProject project) throws CoreException {
+        Set<String> classpath = new HashSet<String>();
+        getClasspath(project, classpath);
+        return classpath.toArray(new String[classpath.size()]);
+    }
+
+    /**
+     * Recursively gathers all user classpath entries
+     */
+    private void getClasspath(IJavaProject project, Set<String> classpath) throws CoreException {
+        IRuntimeClasspathEntry[] unresolvedEntries = JavaRuntime.computeUnresolvedRuntimeClasspath(project);
+        List<IRuntimeClasspathEntry> entries = new ArrayList<IRuntimeClasspathEntry>();
+        for (IRuntimeClasspathEntry entry : unresolvedEntries) {
+            entries.addAll(Arrays.asList(JavaRuntime.resolveRuntimeClasspathEntry(entry, project)));
+        }
+
+        for (IRuntimeClasspathEntry entry : entries) {
+            if (entry.getClasspathProperty() == IRuntimeClasspathEntry.USER_CLASSES) {
+                IProject projectEntry = toProject(entry.getResource());
+                if (projectEntry != null) {
+                    IJavaProject projectDependency = JavaCore.create(projectEntry);
+                    if (!projectDependency.equals(project)) {
+                        getClasspath(projectDependency, classpath);
+                    }
+                } else {
+                    String location = entry.getLocation();
+                    if (location != null) {
+                        classpath.add(location);
+                    }
+                }
+            }
+        }
+
+        classpath.addAll(Arrays.asList(JavaRuntime.computeDefaultRuntimeClassPath(project)));
+    }
+
     private IProject toProject(Object o) {
         if (o instanceof IProject) {
             return (IProject) o;
@@ -161,7 +203,7 @@ public class CreateIPAAction implements IObjectActionDelegate {
         }
         return null;
     }
-    
+
     @Override
     public void selectionChanged(IAction action, ISelection selection) {
         this.selection = selection;
