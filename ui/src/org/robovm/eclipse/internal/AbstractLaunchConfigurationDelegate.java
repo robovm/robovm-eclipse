@@ -42,6 +42,7 @@ import org.eclipse.jdt.launching.AbstractJavaLaunchConfigurationDelegate;
 import org.robovm.compiler.AppCompiler;
 import org.robovm.compiler.config.Arch;
 import org.robovm.compiler.config.Config;
+import org.robovm.compiler.config.Config.Home;
 import org.robovm.compiler.config.OS;
 import org.robovm.compiler.target.LaunchParameters;
 import org.robovm.compiler.target.Target;
@@ -144,7 +145,11 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
                 FileUtils.deleteDirectory(tmpDir);
                 tmpDir.mkdirs();
 
-                configBuilder.home(RoboVMPlugin.getRoboVMHome());
+                Home home = RoboVMPlugin.getRoboVMHome();
+                if (home.isDev()) {
+                    configBuilder.useDebugLibs(true);
+                }
+                configBuilder.home(home);
                 config = configure(configBuilder, configuration, mode);
                 target = config.getTarget();
                 compiler = new AppCompiler(config);
