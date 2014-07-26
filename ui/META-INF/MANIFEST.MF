@@ -18,4 +18,4 @@ Bundle-Activator: org.robovm.eclipse.RoboVMPlugin
 Bundle-SymbolicName: org.robovm.eclipse.ui;singleton:=true
 Bundle-ClassPath: .,
  lib/commons-compress.jar,
- lib/robovm-compiler.jar
+ lib/robovm-dist-compiler.jar

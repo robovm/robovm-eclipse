@@ -21,7 +21,7 @@
       </dependency>
       <dependency>
         <groupId>org.robovm</groupId>
-        <artifactId>robovm-compiler</artifactId>
+        <artifactId>robovm-dist-compiler</artifactId>
         <version>${robovm.version}</version>
         <classifier>nodep</classifier>
       </dependency>
@@ -67,7 +67,7 @@
             </artifactItem>
             <artifactItem>
               <groupId>org.robovm</groupId>
-              <artifactId>robovm-compiler</artifactId>
+              <artifactId>robovm-dist-compiler</artifactId>
               <classifier>nodep</classifier>
             </artifactItem>
             <artifactItem>
