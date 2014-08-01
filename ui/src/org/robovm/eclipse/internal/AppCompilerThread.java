@@ -26,8 +26,8 @@ import org.robovm.compiler.AppCompiler;
  * to finish.
  */
 public class AppCompilerThread extends Thread {
-    private final AppCompiler compiler;
-    private final IProgressMonitor monitor;
+    protected final AppCompiler compiler;
+    protected final IProgressMonitor monitor;
     private Throwable throwable;
     
     public AppCompilerThread(AppCompiler compiler, IProgressMonitor monitor) {
@@ -49,15 +49,21 @@ public class AppCompilerThread extends Thread {
             throw (IOException) throwable;
         } else if (throwable instanceof RuntimeException) {
             throw (RuntimeException) throwable;
+        } else if (throwable instanceof Error) {
+            throw (Error) throwable;
         } else if (throwable != null) {
             throw new RuntimeException(throwable);
         }
     }
     
+    protected void doCompile() throws Exception {
+        compiler.compile();
+    }
+    
     @Override
     public void run() {
         try {
-            compiler.compile();
+            doCompile();
         } catch (Throwable t) {
             if (t.getCause() instanceof InterruptedException) {
                 // Ignore

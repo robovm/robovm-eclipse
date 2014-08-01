@@ -17,7 +17,6 @@
 package org.robovm.eclipse.internal;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +36,8 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
-import org.robovm.compiler.ClassCompiler;
+import org.robovm.compiler.AppCompiler;
+import org.robovm.compiler.ClassCompilerListener;
 import org.robovm.compiler.Version;
 import org.robovm.compiler.clazz.Clazz;
 import org.robovm.compiler.config.Config;
@@ -95,6 +95,9 @@ public class RoboVMClassBuilder extends IncrementalProjectBuilder {
             configBuilder.skipLinking(true);
             configBuilder.skipRuntimeLib(true);
             configBuilder.debug(true);
+            if (home.isDev()) {
+                configBuilder.dumpIntermediates(true);
+            }
             
             // Use console target always since we're only going to compile anyway and not link.
             configBuilder.targetType(TargetType.console);
@@ -127,19 +130,28 @@ public class RoboVMClassBuilder extends IncrementalProjectBuilder {
             monitor.beginTask("Incremental build of changed classes", changedClasses.size());
             configBuilder.home(home);
             Config config = configBuilder.build();
-            RoboVMPlugin.consoleInfo("Building %d changed classes for target %s (%s)", 
+            RoboVMPlugin.consoleInfo("Building %d changed classes for target (%s %s debug)", 
                     changedClasses.size(), config.getOs(), config.getArch());
-            ClassCompiler compiler = new ClassCompiler(config);
-            List<Clazz> compiledClazzes = new ArrayList<Clazz>();
+            final List<Clazz> compileClasses = new ArrayList<Clazz>();
             for (String c : changedClasses) {
-                if (monitor.isCanceled()) {
-                    break;
-                }
-                Clazz clazz = config.getClazzes().load(c.replace('.', '/'));
-                compiler.compile(clazz);
-                monitor.worked(1);
-                compiledClazzes.add(clazz);
+                compileClasses.add(config.getClazzes().load(c.replace('.', '/')));
             }
+            
+            AppCompilerThread thread = new AppCompilerThread(new AppCompiler(config), monitor) {
+                @Override
+                protected void doCompile() throws Exception {
+                    compiler.compile(compileClasses, false, new ClassCompilerListener() {
+                        @Override
+                        public void success(Clazz clazz) {
+                            monitor.worked(1);
+                        }
+                        @Override
+                        public void failure(Clazz clazz, Throwable t) {
+                        }
+                    });
+                }
+            };
+            thread.compile();
             
             /*
              * Set the modified time of the object files for all compiled
@@ -149,7 +161,7 @@ public class RoboVMClassBuilder extends IncrementalProjectBuilder {
              * later by this builder.
              */
             long lastModified = System.currentTimeMillis();
-            for (Clazz clazz : compiledClazzes) {
+            for (Clazz clazz : compileClasses) {
                 File oFile = config.getOFile(clazz);
                 if (oFile.exists()) {
                     oFile.setLastModified(lastModified);
@@ -157,7 +169,7 @@ public class RoboVMClassBuilder extends IncrementalProjectBuilder {
             }
             
             RoboVMPlugin.consoleInfo(monitor.isCanceled() ? "Build canceled" : "Build done");
-        } catch (IOException e) {
+        } catch (Exception e) {
             RoboVMPlugin.consoleError("Build failed");
             throw new CoreException(new Status(IStatus.ERROR, RoboVMPlugin.PLUGIN_ID,
                     "Build failed. Check the RoboVM console for more information.", e));
