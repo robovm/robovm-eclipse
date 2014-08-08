@@ -239,6 +239,13 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
         return result;
     }
     
+    private String unquoteArg(String arg) {
+        if (arg.startsWith("\"") && arg.endsWith("\"")) {
+            return arg.substring(1, arg.length() - 1);
+        }
+        return arg;
+    }
+    
     private List<String> splitArgs(String args) {
         if (args == null || args.trim().length() == 0) {
             return Collections.emptyList();
@@ -249,7 +256,7 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
         }
         List<String> result = new ArrayList<String>(parts.length - 1);
         for (int i = 1 ; i < parts.length; i++) {
-            result.add(parts[i]);
+            result.add(unquoteArg(parts[i]));
         }
         return result;
     }
