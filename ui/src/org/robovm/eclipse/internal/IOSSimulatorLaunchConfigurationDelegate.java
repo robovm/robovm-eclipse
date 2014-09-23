@@ -25,8 +25,9 @@ import org.robovm.compiler.config.Config;
 import org.robovm.compiler.config.Config.TargetType;
 import org.robovm.compiler.config.OS;
 import org.robovm.compiler.target.LaunchParameters;
+import org.robovm.compiler.target.ios.DeviceType;
 import org.robovm.compiler.target.ios.IOSSimulatorLaunchParameters;
-import org.robovm.compiler.target.ios.IOSSimulatorLaunchParameters.Family;
+import org.robovm.compiler.target.ios.SDK;
 import org.robovm.eclipse.RoboVMPlugin;
 
 /**
@@ -37,8 +38,7 @@ public class IOSSimulatorLaunchConfigurationDelegate extends AbstractLaunchConfi
 
     public static final String TYPE_ID = "org.robovm.eclipse.IOSSimulatorLaunchConfigurationType";
     public static final String TYPE_NAME = "iOS Simulator App";
-    public static final String ATTR_IOS_SIM_FAMILY = RoboVMPlugin.PLUGIN_ID + ".IOS_SIM_FAMILY";
-    public static final String ATTR_IOS_SIM_SDK = RoboVMPlugin.PLUGIN_ID + ".IOS_SIM_SDK";
+    public static final String ATTR_IOS_SIM_DEVICE_TYPE = RoboVMPlugin.PLUGIN_ID + ".IOS_SIM_DEVICE_TYPE";
 
     @Override
     protected Arch getArch(ILaunchConfiguration configuration, String mode) {
@@ -49,30 +49,23 @@ public class IOSSimulatorLaunchConfigurationDelegate extends AbstractLaunchConfi
     protected OS getOS(ILaunchConfiguration configuration, String mode) {
         return OS.ios;
     }
-    
+
     @Override
     protected Config configure(Config.Builder configBuilder,
             ILaunchConfiguration configuration, String mode) throws IOException {
-        
         configBuilder.targetType(TargetType.ios);
-        
         return configBuilder.build();
     }
-    
+
     @Override
     protected void customizeLaunchParameters(LaunchParameters launchParameters,
             ILaunchConfiguration configuration, String mode) throws IOException, CoreException {
-
         super.customizeLaunchParameters(launchParameters, configuration, mode);
-        
+
         IOSSimulatorLaunchParameters lp = (IOSSimulatorLaunchParameters) launchParameters;
-        String family = configuration.getAttribute(ATTR_IOS_SIM_FAMILY, (String) null);
-        if (family != null) {
-            lp.setFamily(Family.valueOf(family));
-        }
-        String sdk = configuration.getAttribute(ATTR_IOS_SIM_SDK, "latest");
-        if (!"latest".equals(sdk)) {
-            lp.setSdk(sdk);
+        String deviceTypeId = configuration.getAttribute(ATTR_IOS_SIM_DEVICE_TYPE, (String) null);
+        if (deviceTypeId != null) {
+            lp.setDeviceType(DeviceType.getDeviceType(RoboVMPlugin.getRoboVMHome(), deviceTypeId));
         }
     }
 }

@@ -16,11 +16,10 @@
  */
 package org.robovm.eclipse.internal;
 
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTabGroup;
@@ -38,7 +37,7 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.robovm.compiler.target.ios.IOSSimulatorLaunchParameters.Family;
+import org.robovm.compiler.target.ios.DeviceType;
 import org.robovm.compiler.target.ios.SDK;
 import org.robovm.eclipse.RoboVMPlugin;
 
@@ -51,26 +50,19 @@ public class IOSSimulatorLaunchConfigurationTabGroup extends AbstractLaunchConfi
     @Override
     public void createTabs(ILaunchConfigurationDialog dialog, String mode) {
         setTabs(new ILaunchConfigurationTab[] {
-                new SimulatorTab(),
-                new IOSArgumentsTab(),
-                new JavaClasspathTab(),
-                new JavaSourceLookupTab(),
-                new IOSEnvironmentTab(),
-                new CommonTab()
+            new SimulatorTab(),
+            new IOSArgumentsTab(),
+            new JavaClasspathTab(),
+            new JavaSourceLookupTab(),
+            new IOSEnvironmentTab(),
+            new CommonTab()
         });
     }
 
-    private static List<SDK> listSDKs() {
-        List<SDK> sdks = SDK.listSimulatorSDKs();
-        Collections.sort(sdks, Collections.reverseOrder());
-        return sdks;
-    }
-    
     public static class SimulatorTab extends RoboVMTab {
 
-        private Combo familyCombo;
-        private Combo sdkCombo;
-        
+        private Combo deviceTypeCombo;
+
         @Override
         public void createControl(Composite parent) {
             Composite root = createRoot(parent);
@@ -78,7 +70,7 @@ public class IOSSimulatorLaunchConfigurationTabGroup extends AbstractLaunchConfi
             createSimulatorEditor(root);
             setControl(root);
         }
-        
+
         protected void createSimulatorEditor(Composite parent) {
             Group group = new Group(parent, SWT.NONE);
             group.setText("iOS Simulator:");
@@ -87,43 +79,27 @@ public class IOSSimulatorLaunchConfigurationTabGroup extends AbstractLaunchConfi
             group.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
             ((GridData) group.getLayoutData()).horizontalSpan = 1;
             ((GridLayout) group.getLayout()).verticalSpacing = 0;
-            
-            Label familyLabel = new Label(group, SWT.NONE);
-            familyLabel.setFont(group.getFont());
-            familyLabel.setText("Device family:");
-            familyLabel.setLayoutData(new GridData(GridData.BEGINNING, GridData.CENTER, false, false));
 
-            Family[] families = Family.values();
-            String[] familiesDisplayNames = new String[families.length];
-            for (int i = 0; i < familiesDisplayNames.length; i++) {
-                familiesDisplayNames[i] = families[i].getDisplayName();
+            Label typeLabel = new Label(group, SWT.NONE);
+            typeLabel.setFont(group.getFont());
+            typeLabel.setText("Device type:");
+            typeLabel.setLayoutData(new GridData(GridData.BEGINNING, GridData.CENTER, false, false));
+
+            List<DeviceType> types = Collections.<DeviceType> emptyList();
+            try {
+                types = DeviceType.listDeviceTypes(RoboVMPlugin.getRoboVMHome());
+            } catch (IOException e) {
+                RoboVMPlugin.log(e);
             }
-            familyCombo = new Combo(group, SWT.READ_ONLY | SWT.BORDER);
-            familyCombo.setItems(familiesDisplayNames);
-            familyCombo.select(0);
-            familyCombo.setLayoutData(new GridData(GridData.FILL, GridData.CENTER, true, false));
-            familyCombo.addSelectionListener(new SelectionAdapter() {
-                @Override
-                public void widgetSelected(SelectionEvent event) {
-                    updateLaunchConfigurationDialog();
-                }
-            });
-
-            Label sdkLabel = new Label(group, SWT.NONE);
-            sdkLabel.setFont(group.getFont());
-            sdkLabel.setText("SDK version:");
-            sdkLabel.setLayoutData(new GridData(GridData.BEGINNING, GridData.CENTER, false, false));
-
-            sdkCombo = new Combo(group, SWT.READ_ONLY | SWT.BORDER);
-            ArrayList<String> sdks = new ArrayList<String>();
-            sdks.add("Latest");
-            for (SDK sdk : listSDKs()) {
-                sdks.add(sdk.getVersion());
+            String[] deviceDisplayNames = new String[types.size()];
+            for (int i = 0; i < deviceDisplayNames.length; i++) {
+                deviceDisplayNames[i] = types.get(i).getSimpleDeviceTypeId();
             }
-            sdkCombo.setItems(sdks.toArray(new String[sdks.size()]));
-            sdkCombo.select(0);
-            sdkCombo.setLayoutData(new GridData(GridData.FILL, GridData.CENTER, true, false));
-            sdkCombo.addSelectionListener(new SelectionAdapter() {
+            deviceTypeCombo = new Combo(group, SWT.READ_ONLY | SWT.BORDER);
+            deviceTypeCombo.setItems(deviceDisplayNames);
+            deviceTypeCombo.select(0);
+            deviceTypeCombo.setLayoutData(new GridData(GridData.FILL, GridData.CENTER, true, false));
+            deviceTypeCombo.addSelectionListener(new SelectionAdapter() {
                 @Override
                 public void widgetSelected(SelectionEvent event) {
                     updateLaunchConfigurationDialog();
@@ -137,34 +113,21 @@ public class IOSSimulatorLaunchConfigurationTabGroup extends AbstractLaunchConfi
         public void initializeFrom(ILaunchConfiguration config) {
             super.initializeFrom(config);
             try {
-                String v = config.getAttribute(IOSSimulatorLaunchConfigurationDelegate.ATTR_IOS_SIM_FAMILY, Family.iPhoneRetina4Inch.name());
-                Family family = null;
-                try {
-                    family = Family.valueOf(v);
-                } catch (IllegalArgumentException e) {
-                    family = Family.iPhoneRetina4Inch;
+                String v = config.getAttribute(IOSSimulatorLaunchConfigurationDelegate.ATTR_IOS_SIM_DEVICE_TYPE,
+                        (String) null);
+                DeviceType type = DeviceType.getDeviceType(RoboVMPlugin.getRoboVMHome(), v);
+                if (type == null) {
+                    type = DeviceType.getBestDeviceType(RoboVMPlugin.getRoboVMHome());
                 }
-                String[] items = familyCombo.getItems();
+
+                String[] items = deviceTypeCombo.getItems();
                 for (int i = 0; i < items.length; i++) {
-                    if (items[i].equals(family.getDisplayName())) {
-                        familyCombo.select(i);
+                    if (items[i].equals(type.getSimpleDeviceTypeId())) {
+                        deviceTypeCombo.select(i);
                         break;
                     }
                 }
-            } catch (CoreException e) {
-                RoboVMPlugin.log(e);
-            }
-            try {
-                String v = config.getAttribute(IOSSimulatorLaunchConfigurationDelegate.ATTR_IOS_SIM_SDK, (String) null);
-                sdkCombo.select(0);
-                String[] items = sdkCombo.getItems();
-                for (int i = 0; i < items.length; i++) {
-                    if (items[i].equals(v)) {
-                        sdkCombo.select(i);
-                        break;
-                    }
-                }
-            } catch (CoreException e) {
+            } catch (Exception e) {
                 RoboVMPlugin.log(e);
             }
         }
@@ -172,21 +135,21 @@ public class IOSSimulatorLaunchConfigurationTabGroup extends AbstractLaunchConfi
         @Override
         public void performApply(ILaunchConfigurationWorkingCopy wc) {
             super.performApply(wc);
-            int familyIndex = familyCombo.getSelectionIndex();
-            Family family = Family.values()[familyIndex];
-            wc.setAttribute(IOSSimulatorLaunchConfigurationDelegate.ATTR_IOS_SIM_FAMILY, family.name());
-            int sdkIndex = sdkCombo.getSelectionIndex();
-            String sdk = sdkIndex == 0 ? null : sdkCombo.getItem(sdkIndex);
-            wc.setAttribute(IOSSimulatorLaunchConfigurationDelegate.ATTR_IOS_SIM_SDK, sdk);
+            String selection = deviceTypeCombo.getItem(deviceTypeCombo.getSelectionIndex());
+            wc.setAttribute(IOSSimulatorLaunchConfigurationDelegate.ATTR_IOS_SIM_DEVICE_TYPE, selection);
         }
 
         @Override
         public void setDefaults(ILaunchConfigurationWorkingCopy wc) {
             super.setDefaults(wc);
-            wc.setAttribute(IOSSimulatorLaunchConfigurationDelegate.ATTR_IOS_SIM_FAMILY, Family.iPhoneRetina4Inch.name());
-            wc.setAttribute(IOSSimulatorLaunchConfigurationDelegate.ATTR_IOS_SIM_SDK, (String) null);
+            try {
+                wc.setAttribute(IOSSimulatorLaunchConfigurationDelegate.ATTR_IOS_SIM_DEVICE_TYPE,
+                        DeviceType.getBestDeviceType(RoboVMPlugin.getRoboVMHome()).getSimpleDeviceTypeId());
+            } catch (IOException e) {
+                RoboVMPlugin.log(e);
+            }
         }
-        
+
     }
-    
+
 }

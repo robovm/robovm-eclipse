@@ -16,17 +16,15 @@
  */
 package org.robovm.eclipse.internal;
 
-import org.robovm.compiler.target.ios.IOSSimulatorLaunchParameters.Family;
+import org.robovm.compiler.target.ios.DeviceType.DeviceFamily;
 
 /**
  * @author niklas
  *
  */
 public class IPhoneSimulatorLaunchShortcut extends IOSSimulatorLaunchShortcut {
-
     @Override
-    protected Family getFamily() {
-        return Family.iPhoneRetina4Inch;
+    protected DeviceFamily getFamily() {
+        return DeviceFamily.iPhone;
     }
-    
 }
