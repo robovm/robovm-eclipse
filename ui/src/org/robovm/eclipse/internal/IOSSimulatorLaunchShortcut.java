@@ -16,14 +16,17 @@
  */
 package org.robovm.eclipse.internal;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
-import org.robovm.compiler.target.ios.IOSSimulatorLaunchParameters.Family;
-
+import org.robovm.compiler.target.ios.DeviceType;
+import org.robovm.compiler.target.ios.DeviceType.DeviceFamily;
+import org.robovm.compiler.target.ios.SDK;
+import org.robovm.eclipse.RoboVMPlugin;
 
 /**
  * @author niklas
@@ -38,16 +41,29 @@ public abstract class IOSSimulatorLaunchShortcut extends AbstractProjectLaunchSh
 
     @Override
     protected void customizeConfiguration(ILaunchConfigurationWorkingCopy wc) {
-        wc.setAttribute(IOSSimulatorLaunchConfigurationDelegate.ATTR_IOS_SIM_FAMILY, getFamily().toString());
+        try {
+            wc.setAttribute(IOSSimulatorLaunchConfigurationDelegate.ATTR_IOS_SIM_DEVICE_TYPE,
+                    DeviceType.getBestDeviceType(RoboVMPlugin.getRoboVMHome(), getFamily()).getSimpleDeviceTypeId());
+        } catch (IOException e) {
+            RoboVMPlugin.log(e);
+        }
     }
-    
-    protected abstract Family getFamily();
-    
+
+    protected abstract DeviceFamily getFamily();
+
     protected List<ILaunchConfiguration> filterConfigs(List<ILaunchConfiguration> configs) throws CoreException {
         List<ILaunchConfiguration> result = new ArrayList<ILaunchConfiguration>();
-        String family = getFamily().toString();
         for (ILaunchConfiguration config : configs) {
-            if (family.equals(config.getAttribute(IOSSimulatorLaunchConfigurationDelegate.ATTR_IOS_SIM_FAMILY, (String) null))) {
+            String deviceTypeId = config.getAttribute(IOSSimulatorLaunchConfigurationDelegate.ATTR_IOS_SIM_DEVICE_TYPE,
+                    (String) null);
+            DeviceType type = null;
+            try {
+                type = DeviceType.getDeviceType(RoboVMPlugin.getRoboVMHome(), deviceTypeId);
+            } catch (IOException e) {
+                RoboVMPlugin.log(e);
+                continue;
+            }
+            if (type.getFamily() == getFamily()) {
                 result.add(config);
             }
         }
