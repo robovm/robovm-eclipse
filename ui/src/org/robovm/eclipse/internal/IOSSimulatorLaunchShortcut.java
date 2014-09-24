@@ -56,6 +56,9 @@ public abstract class IOSSimulatorLaunchShortcut extends AbstractProjectLaunchSh
         for (ILaunchConfiguration config : configs) {
             String deviceTypeId = config.getAttribute(IOSSimulatorLaunchConfigurationDelegate.ATTR_IOS_SIM_DEVICE_TYPE,
                     (String) null);
+            if (deviceTypeId == null) {
+                continue;
+            }
             DeviceType type = null;
             try {
                 type = DeviceType.getDeviceType(RoboVMPlugin.getRoboVMHome(), deviceTypeId);
