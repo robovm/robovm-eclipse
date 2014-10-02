@@ -20,11 +20,14 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -39,6 +42,7 @@ import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.launching.AbstractJavaLaunchConfigurationDelegate;
 import org.robovm.compiler.AppCompiler;
 import org.robovm.compiler.config.Arch;
@@ -46,6 +50,8 @@ import org.robovm.compiler.config.Config;
 import org.robovm.compiler.config.Config.Home;
 import org.robovm.compiler.config.OS;
 import org.robovm.compiler.plugin.LaunchPlugin;
+import org.robovm.compiler.plugin.Plugin;
+import org.robovm.compiler.plugin.RequiresInputStream;
 import org.robovm.compiler.target.LaunchParameters;
 import org.robovm.compiler.target.Target;
 import org.robovm.compiler.util.io.OpenOnReadFileInputStream;
@@ -93,6 +99,7 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
             String vmArgs = getVMArguments(configuration);
             String[] classpath = getClasspath(configuration);
             String[] bootclasspath = getBootpath(configuration);
+            IJavaProject javaProject = getJavaProject(configuration);
 
             if (monitor.isCanceled()) {
                 return;
@@ -132,7 +139,12 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
                 tmpDir = new File(tmpDir, mainTypeName);
             }
 
-            configBuilder.debug(ILaunchManager.DEBUG_MODE.equals(mode));
+            if (ILaunchManager.DEBUG_MODE.equals(mode)) {
+                configBuilder.debug(true);
+                String sourcepaths = RoboVMPlugin.getSourcePaths(javaProject);
+                configBuilder.addPluginArgument("debug:sourcepath=" + sourcepaths);
+            }
+
             configBuilder.logger(RoboVMPlugin.getConsoleLogger());
             if (bootclasspath != null) {
                 configBuilder.skipRuntimeLib(true);
@@ -203,20 +215,29 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
                 customizeLaunchParameters(launchParameters, configuration, mode);
                 String label = String.format("%s (%s)", mainTypeName,
                         DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM).format(new Date()));
+                // launch plugin may proxy stdout/stderr fifo, which
+                // it then writes to. Need to save the original fifos
+                File stdOutFifo = launchParameters.getStdoutFifo();
+                File stdErrFifo = launchParameters.getStderrFifo();
+                PipedInputStream pipedIn = new PipedInputStream();
+                PipedOutputStream pipedOut = new PipedOutputStream(pipedIn);
                 for (LaunchPlugin plugin : config.getLaunchPlugins()) {
                     plugin.beforeLaunch(config, launchParameters);
+                    if (plugin instanceof RequiresInputStream) {
+                        ((RequiresInputStream) plugin).setInputStream(pipedIn);
+                    }
                 }
                 Process process = target.launch(launchParameters);
-                if (launchParameters.getStdoutFifo() != null || launchParameters.getStderrFifo() != null) {
+                if (stdOutFifo != null || stdErrFifo != null) {
                     InputStream stdoutStream = null;
                     InputStream stderrStream = null;
                     if (launchParameters.getStdoutFifo() != null) {
-                        stdoutStream = new OpenOnReadFileInputStream(launchParameters.getStdoutFifo());
+                        stdoutStream = new OpenOnReadFileInputStream(stdOutFifo);
                     }
                     if (launchParameters.getStderrFifo() != null) {
-                        stderrStream = new OpenOnReadFileInputStream(launchParameters.getStderrFifo());
+                        stderrStream = new OpenOnReadFileInputStream(stdErrFifo);
                     }
-                    process = new ProcessProxy(process, stdoutStream, stderrStream, config, launchParameters);
+                    process = new ProcessProxy(process, pipedOut, stdoutStream, stderrStream, config, launchParameters);
                 }
 
                 DebugPlugin.newProcess(launch, process, label);
@@ -291,14 +312,17 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
 
     private static class ProcessProxy extends Process {
         private final Process target;
+        private final OutputStream outputStream;
         private final InputStream inputStream;
         private final InputStream errorStream;
         private final Config config;
         private final LaunchParameters params;
 
-        ProcessProxy(Process target, InputStream inputStream, InputStream errorStream, Config config,
+        ProcessProxy(Process target, OutputStream outputStream, InputStream inputStream, InputStream errorStream,
+                Config config,
                 LaunchParameters params) {
             this.target = target;
+            this.outputStream = outputStream;
             this.inputStream = inputStream;
             this.errorStream = errorStream;
             this.config = config;
@@ -332,6 +356,9 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
         }
 
         public OutputStream getOutputStream() {
+            if (outputStream != null) {
+                return outputStream;
+            }
             return target.getOutputStream();
         }
 

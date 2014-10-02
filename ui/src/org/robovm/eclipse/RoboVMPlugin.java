@@ -29,6 +29,8 @@ import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.compress.archivers.ArchiveEntry;
@@ -38,8 +40,11 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ProjectScope;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
@@ -47,6 +52,9 @@ import org.eclipse.core.runtime.preferences.DefaultScope;
 import org.eclipse.core.runtime.preferences.IPreferencesService;
 import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.core.runtime.preferences.InstanceScope;
+import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
@@ -88,37 +96,40 @@ public class RoboVMPlugin extends AbstractUIPlugin {
 
     private static RoboVMPlugin plugin;
     private static Config.Home roboVMHome = null;
-    
+
     private boolean showConsoleOnWrite = true;
     private MessageConsole console;
     private MessageConsoleStream debugStream;
     private MessageConsoleStream infoStream;
     private MessageConsoleStream warnStream;
     private MessageConsoleStream errorStream;
-    
+
     private static Logger consoleLogger = new Logger() {
         @Override
         public void info(String format, Object... args) {
             RoboVMPlugin.consoleInfo(format, args);
         }
+
         @Override
         public void error(String format, Object... args) {
             RoboVMPlugin.consoleError(format, args);
         }
+
         @Override
         public void warn(String format, Object... args) {
             RoboVMPlugin.consoleWarn(format, args);
         }
+
         @Override
         public void debug(String format, Object... args) {
             RoboVMPlugin.consoleDebug(format, args);
         }
     };
-    
+
     public static void log(IStatus status) {
         getDefault().getLog().log(status);
     }
-    
+
     public static void log(Throwable e) {
         if (e instanceof CoreException) {
             log(new Status(IStatus.ERROR, PLUGIN_ID, IStatus.ERROR, e.getMessage(), e.getCause()));
@@ -126,7 +137,7 @@ public class RoboVMPlugin extends AbstractUIPlugin {
             log(new Status(IStatus.ERROR, PLUGIN_ID, 999, "Internal Error", e));
         }
     }
-    
+
     public void start(BundleContext context) throws Exception {
         super.start(context);
         plugin = this;
@@ -134,7 +145,7 @@ public class RoboVMPlugin extends AbstractUIPlugin {
         // Set up the console
         console = new MessageConsole("RoboVM Console", null);
         console.setWaterMarks(40000, 80000);
-        ConsolePlugin.getDefault().getConsoleManager().addConsoles(new IConsole[] {console});
+        ConsolePlugin.getDefault().getConsoleManager().addConsoles(new IConsole[] { console });
         Display display = getDisplay();
         debugStream = console.newMessageStream();
         final Color debugColor = new Color(display, 0x99, 0x99, 0x99);
@@ -156,7 +167,7 @@ public class RoboVMPlugin extends AbstractUIPlugin {
 
     public void stop(BundleContext context) throws Exception {
         super.stop(context);
-        
+
         synchronized (RoboVMPlugin.class) {
             plugin = null;
         }
@@ -165,7 +176,7 @@ public class RoboVMPlugin extends AbstractUIPlugin {
     public static Logger getConsoleLogger() {
         return consoleLogger;
     }
-    
+
     /**
      * Returns the shared instance
      *
@@ -174,7 +185,7 @@ public class RoboVMPlugin extends AbstractUIPlugin {
     public static RoboVMPlugin getDefault() {
         return plugin;
     }
-    
+
     public static synchronized Display getDisplay() {
         if (plugin != null) {
             IWorkbench workbench = plugin.getWorkbench();
@@ -184,7 +195,7 @@ public class RoboVMPlugin extends AbstractUIPlugin {
         }
         return null;
     }
-    
+
     public static synchronized Shell getShell() {
         Display display = getDisplay();
         if (display != null) {
@@ -192,7 +203,7 @@ public class RoboVMPlugin extends AbstractUIPlugin {
         }
         return null;
     }
-    
+
     public static File getMetadataDir() {
         return plugin.getStateLocation().toFile();
     }
@@ -220,7 +231,7 @@ public class RoboVMPlugin extends AbstractUIPlugin {
                         FileUtils.deleteDirectory(homeDir);
                     }
                 }
-                
+
                 if (!homeDir.exists()) {
                     // Copy the tar.gz to distFile and extract.
                     distFile.delete();
@@ -264,7 +275,49 @@ public class RoboVMPlugin extends AbstractUIPlugin {
             IOUtils.closeQuietly(in);
         }
     }
-    
+
+    private static void getSourcePaths(Set<String> paths, IJavaProject javaProject) throws CoreException {
+        try {
+            // add the source jars of rt/objc/cocoatouch etc.
+            File libDir = new File(RoboVMPlugin.getRoboVMHome().getBinDir().getParentFile(), "lib");
+            paths.add(new File(libDir, "robovm-cocoatouch-sources.jar").getAbsolutePath());
+            paths.add(new File(libDir, "robovm-objc-sources.jar").getAbsolutePath());
+            paths.add(new File(libDir, "robovm-rt-sources.jar").getAbsolutePath());
+        } catch (IOException e) {
+            RoboVMPlugin.consoleError("Couldn't retrieve lib/ directory");
+        }
+        IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+        for (IClasspathEntry entry : javaProject.getResolvedClasspath(true)) {
+            IPath path = null;
+            if (entry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
+                path = root.findMember(entry.getPath()).getLocation();
+            } else if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
+                if (entry.getSourceAttachmentPath() != null) {
+                    path = entry.getSourceAttachmentPath();
+                }
+            } else if (entry.getEntryKind() == IClasspathEntry.CPE_PROJECT) {                
+                IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(entry.getPath().toString());
+                if (project.isNatureEnabled("org.eclipse.jdt.core.javanature")) {
+                    getSourcePaths(paths, JavaCore.create(project));
+                }
+            }
+            if (path != null) {
+                paths.add(path.toOSString());
+            }
+        }
+    }
+
+    public static String getSourcePaths(IJavaProject javaProject) throws CoreException {
+        Set<String> paths = new LinkedHashSet<String>();
+        getSourcePaths(paths, javaProject);      
+        StringBuilder builder = new StringBuilder();
+        for(String path: paths) {
+            builder.append(path);
+            builder.append(":");
+        }
+        return builder.toString();
+    }
+
     private static byte[] md5(File file) throws IOException {
         InputStream in = new FileInputStream(file);
         try {
@@ -273,7 +326,7 @@ public class RoboVMPlugin extends AbstractUIPlugin {
             IOUtils.closeQuietly(in);
         }
     }
-    
+
     private static byte[] md5(URL url) throws IOException {
         InputStream in = url.openStream();
         try {
@@ -282,7 +335,7 @@ public class RoboVMPlugin extends AbstractUIPlugin {
             IOUtils.closeQuietly(in);
         }
     }
-    
+
     private static byte[] md5(InputStream in) throws IOException {
         MessageDigest digest;
         try {
@@ -294,54 +347,54 @@ public class RoboVMPlugin extends AbstractUIPlugin {
         IOUtils.copy(dis, new NullOutputStream());
         return digest.digest();
     }
-    
+
     public static String getIncrementalBuildArch(IProject project) {
         IPreferencesService prefs = Platform.getPreferencesService();
-        IScopeContext[] contexts = new IScopeContext[] {new ProjectScope(project), 
-                InstanceScope.INSTANCE, DefaultScope.INSTANCE}; 
+        IScopeContext[] contexts = new IScopeContext[] { new ProjectScope(project),
+            InstanceScope.INSTANCE, DefaultScope.INSTANCE };
         return prefs.getString(PLUGIN_ID, PREFERENCE_INCREMENTAL_BUILD_ARCH, ARCH_AUTO, contexts);
     }
-    
+
     public static String getIncrementalBuildOS(IProject project) {
         IPreferencesService prefs = Platform.getPreferencesService();
-        IScopeContext[] contexts = new IScopeContext[] {new ProjectScope(project), 
-                InstanceScope.INSTANCE, DefaultScope.INSTANCE}; 
+        IScopeContext[] contexts = new IScopeContext[] { new ProjectScope(project),
+            InstanceScope.INSTANCE, DefaultScope.INSTANCE };
         return prefs.getString(PLUGIN_ID, PREFERENCE_INCREMENTAL_BUILD_OS, OS_AUTO, contexts);
     }
-    
+
     public static Arch getDefaultArch() {
         return Arch.getDefaultArch();
     }
-    
+
     public static Arch getArch(IProject project) {
         return getArch(getIncrementalBuildArch(project));
     }
-    
+
     public static Arch getArch(String s) {
         if (ARCH_AUTO.equals(s)) {
             return getDefaultArch();
         }
         return Arch.valueOf(s);
     }
-    
+
     public static OS getDefaultOS() {
         return OS.getDefaultOS();
     }
-    
+
     public static OS getOS(IProject project) {
         return getOS(getIncrementalBuildOS(project));
     }
-    
+
     public static OS getOS(String s) {
         if (OS_AUTO.equals(s)) {
             return getDefaultOS();
         }
         return OS.valueOf(s);
     }
-    
+
     public static Config.Builder loadConfig(Config.Builder configBuilder,
             File projectRoot) {
-        
+
         File propsFile = new File(projectRoot, "robovm.properties");
         File localPropsFile = new File(projectRoot, "robovm.local.properties");
         File configFile = new File(projectRoot, "robovm.xml");
@@ -372,24 +425,24 @@ public class RoboVMPlugin extends AbstractUIPlugin {
             configBuilder.clearBootClasspathEntries();
             configBuilder.clearClasspathEntries();
         }
-        
+
         return configBuilder;
     }
-    
+
     private static String now() {
         DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM);
         return df.format(new Date());
     }
-    
-    public static synchronized void consoleDebug(String format, Object ... args) {
+
+    public static synchronized void consoleDebug(String format, Object... args) {
         if (plugin != null) {
             String msg = String.format(format, args);
             plugin.debugStream.println(now() + ": [DEBUG] " + msg);
             showConsoleIfFirstWrite();
         }
     }
-    
-    public static synchronized void consoleInfo(String format, Object ... args) {
+
+    public static synchronized void consoleInfo(String format, Object... args) {
         if (plugin != null) {
             String msg = String.format(format, args);
             plugin.infoStream.println(now() + ": [ INFO] " + msg);
@@ -397,28 +450,28 @@ public class RoboVMPlugin extends AbstractUIPlugin {
         }
     }
 
-    public static synchronized void consoleWarn(String format, Object ... args) {
+    public static synchronized void consoleWarn(String format, Object... args) {
         if (plugin != null) {
             String msg = String.format(format, args);
             plugin.warnStream.println(now() + ": [ WARN] " + msg);
             showConsole();
         }
     }
-    
-    public static synchronized void consoleError(String format, Object ... args) {
+
+    public static synchronized void consoleError(String format, Object... args) {
         if (plugin != null) {
             String msg = String.format(format, args);
             plugin.errorStream.println(now() + ": [ERROR] " + msg);
             showConsole();
         }
     }
-    
+
     private static void showConsoleIfFirstWrite() {
         if (plugin.showConsoleOnWrite) {
             showConsole();
         }
     }
-    
+
     private static void showConsole() {
         plugin.showConsoleOnWrite = false;
         try {
@@ -432,5 +485,5 @@ public class RoboVMPlugin extends AbstractUIPlugin {
         } catch (PartInitException partEx) {
         }
         ConsolePlugin.getDefault().getConsoleManager().showConsoleView(plugin.console);
-    }    
+    }
 }
