@@ -95,6 +95,7 @@ public class RoboVMClassBuilder extends IncrementalProjectBuilder {
             configBuilder.skipLinking(true);
             configBuilder.skipRuntimeLib(true);
             configBuilder.debug(true);
+            configBuilder.addPluginArgument("debug:sourcepath=" + RoboVMPlugin.getSourcePaths(javaProject));
             if (home.isDev()) {
                 configBuilder.dumpIntermediates(true);
             }
