@@ -295,7 +295,7 @@ public class RoboVMPlugin extends AbstractUIPlugin {
                 if (entry.getSourceAttachmentPath() != null) {
                     path = entry.getSourceAttachmentPath();
                 }
-            } else if (entry.getEntryKind() == IClasspathEntry.CPE_PROJECT) {                
+            } else if (entry.getEntryKind() == IClasspathEntry.CPE_PROJECT) {
                 IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(entry.getPath().toString());
                 if (project.isNatureEnabled("org.eclipse.jdt.core.javanature")) {
                     getSourcePaths(paths, JavaCore.create(project));
@@ -309,9 +309,9 @@ public class RoboVMPlugin extends AbstractUIPlugin {
 
     public static String getSourcePaths(IJavaProject javaProject) throws CoreException {
         Set<String> paths = new LinkedHashSet<String>();
-        getSourcePaths(paths, javaProject);      
+        getSourcePaths(paths, javaProject);
         StringBuilder builder = new StringBuilder();
-        for(String path: paths) {
+        for (String path : paths) {
             builder.append(path);
             builder.append(":");
         }
