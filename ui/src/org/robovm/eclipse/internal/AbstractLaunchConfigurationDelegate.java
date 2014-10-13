@@ -52,6 +52,7 @@ import org.robovm.compiler.plugin.LaunchPlugin;
 import org.robovm.compiler.plugin.RequiresInputStream;
 import org.robovm.compiler.target.LaunchParameters;
 import org.robovm.compiler.target.Target;
+import org.robovm.compiler.util.io.Fifos;
 import org.robovm.compiler.util.io.OpenOnReadFileInputStream;
 import org.robovm.eclipse.RoboVMPlugin;
 
@@ -70,8 +71,8 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
 
     protected void customizeLaunchParameters(LaunchParameters launchParameters, ILaunchConfiguration configuration,
             String mode) throws IOException, CoreException {
-        launchParameters.setStdoutFifo(mkfifo("stdout"));
-        launchParameters.setStderrFifo(mkfifo("stderr"));
+        launchParameters.setStdoutFifo(Fifos.mkfifo("stdout"));
+        launchParameters.setStderrFifo(Fifos.mkfifo("stderr"));
     }
 
     @Override
@@ -291,21 +292,6 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
             result.add(unquoteArg(parts[i]));
         }
         return result;
-    }
-
-    protected File mkfifo(String type) throws IOException {
-        File f = File.createTempFile("robovm-" + type + "-", ".fifo");
-        f.delete();
-        ProcessBuilder pb = new ProcessBuilder("mkfifo", "-m", "600", f.getAbsolutePath());
-        try {
-            int exitValue = pb.start().waitFor();
-            if (exitValue != 0) {
-                throw new IOException("Failed to create " + type + " fifo");
-            }
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-        return f;
     }
 
     private static class ProcessProxy extends Process {
