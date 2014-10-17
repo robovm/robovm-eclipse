@@ -162,7 +162,6 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
 
             Config config = null;
             AppCompiler compiler = null;
-            Target target = null;
             try {
                 RoboVMPlugin.consoleInfo("Cleaning output dir " + tmpDir.getAbsolutePath());
                 FileUtils.deleteDirectory(tmpDir);
@@ -175,7 +174,6 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
                 }
                 configBuilder.home(home);
                 config = configure(configBuilder, configuration, mode);
-                target = config.getTarget();
                 compiler = new AppCompiler(config);
                 if (monitor.isCanceled()) {
                     return;
@@ -207,7 +205,7 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
                 List<String> runArgs = new ArrayList<String>();
                 runArgs.addAll(splitArgs(vmArgs));
                 runArgs.addAll(splitArgs(pgmArgs));
-                LaunchParameters launchParameters = target.createLaunchParameters();
+                LaunchParameters launchParameters = config.getTarget().createLaunchParameters();
                 launchParameters.setArguments(runArgs);
                 launchParameters.setWorkingDirectory(workingDir);
                 launchParameters.setEnvironment(envToMap(envp));
@@ -220,13 +218,7 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
                 File stdErrFifo = launchParameters.getStderrFifo();
                 PipedInputStream pipedIn = new PipedInputStream();
                 PipedOutputStream pipedOut = new PipedOutputStream(pipedIn);
-                for (LaunchPlugin plugin : config.getLaunchPlugins()) {
-                    plugin.beforeLaunch(config, launchParameters);
-                    if (plugin instanceof RequiresInputStream) {
-                        ((RequiresInputStream) plugin).setInputStream(pipedIn);
-                    }
-                }
-                Process process = target.launch(launchParameters);
+                Process process = compiler.launchAsync(launchParameters, pipedIn);
                 if (stdOutFifo != null || stdErrFifo != null) {
                     InputStream stdoutStream = null;
                     InputStream stderrStream = null;
@@ -247,10 +239,10 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
                     return;
                 }
                 monitor.worked(1);
-            } catch (IOException e) {
+            } catch (Throwable t) {
                 RoboVMPlugin.consoleError("Launch failed");
                 throw new CoreException(new Status(IStatus.ERROR, RoboVMPlugin.PLUGIN_ID,
-                        "Launch failed. Check the RoboVM console for more information.", e));
+                        "Launch failed. Check the RoboVM console for more information.", t));
             }
 
         } finally {
