@@ -55,7 +55,6 @@ import org.robovm.compiler.util.io.OpenOnReadFileInputStream;
 import org.robovm.eclipse.RoboVMPlugin;
 
 /**
- * @author niklas
  *
  */
 public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLaunchConfigurationDelegate {
@@ -71,6 +70,10 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
             String mode) throws IOException, CoreException {
         launchParameters.setStdoutFifo(Fifos.mkfifo("stdout"));
         launchParameters.setStderrFifo(Fifos.mkfifo("stderr"));
+    }
+
+    protected boolean isTestConfiguration() {
+        return false;
     }
 
     @Override
@@ -119,9 +122,10 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
                 throw new CoreException(new Status(IStatus.ERROR, RoboVMPlugin.PLUGIN_ID,
                         "Launch failed. Check the RoboVM console for more information.", e));
             }
+            configBuilder.logger(RoboVMPlugin.getConsoleLogger());
 
             File projectRoot = getJavaProject(configuration).getProject().getLocation().toFile();
-            RoboVMPlugin.loadConfig(configBuilder, projectRoot);
+            RoboVMPlugin.loadConfig(configBuilder, projectRoot, isTestConfiguration());
 
             Arch arch = getArch(configuration, mode);
             OS os = getOS(configuration, mode);
@@ -142,7 +146,6 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
                 configBuilder.addPluginArgument("debug:sourcepath=" + sourcepaths);
             }
 
-            configBuilder.logger(RoboVMPlugin.getConsoleLogger());
             if (bootclasspath != null) {
                 configBuilder.skipRuntimeLib(true);
                 for (String p : bootclasspath) {

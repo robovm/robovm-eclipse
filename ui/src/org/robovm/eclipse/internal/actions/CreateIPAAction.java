@@ -97,10 +97,10 @@ public class CreateIPAAction implements IObjectActionDelegate {
 
                     File projectRoot = project.getLocation().toFile();
                     Config.Builder configBuilder = new Config.Builder();
-                    RoboVMPlugin.loadConfig(configBuilder, projectRoot);
+                    configBuilder.logger(RoboVMPlugin.getConsoleLogger());
+                    RoboVMPlugin.loadConfig(configBuilder, projectRoot, false);
                     configBuilder.os(OS.ios);
                     configBuilder.arch(Arch.thumbv7);
-                    configBuilder.logger(RoboVMPlugin.getConsoleLogger());
                     configBuilder.installDir(new File(destDir));
                     configBuilder.iosSignIdentity(SigningIdentity.find(SigningIdentity.list(), signingIdentity));
                     if (provisioningProfile != null) {
