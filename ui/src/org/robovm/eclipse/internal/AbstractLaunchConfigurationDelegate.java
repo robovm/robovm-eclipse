@@ -48,7 +48,6 @@ import org.robovm.compiler.config.Arch;
 import org.robovm.compiler.config.Config;
 import org.robovm.compiler.config.Config.Home;
 import org.robovm.compiler.config.OS;
-import org.robovm.compiler.plugin.LaunchPlugin;
 import org.robovm.compiler.target.LaunchParameters;
 import org.robovm.compiler.util.io.Fifos;
 import org.robovm.compiler.util.io.OpenOnReadFileInputStream;
@@ -229,7 +228,7 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
                     if (launchParameters.getStderrFifo() != null) {
                         stderrStream = new OpenOnReadFileInputStream(stdErrFifo);
                     }
-                    process = new ProcessProxy(process, pipedOut, stdoutStream, stderrStream, config, launchParameters);
+                    process = new ProcessProxy(process, pipedOut, stdoutStream, stderrStream, compiler);
                 }
 
                 DebugPlugin.newProcess(launch, process, label);
@@ -292,27 +291,22 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
         private final OutputStream outputStream;
         private final InputStream inputStream;
         private final InputStream errorStream;
-        private final Config config;
-        private final LaunchParameters params;
+        private final AppCompiler appCompiler;
         private volatile boolean cleanedUp = false;
 
         ProcessProxy(Process target, OutputStream outputStream, InputStream inputStream, InputStream errorStream,
-                Config config,
-                LaunchParameters params) {
+                AppCompiler appCompiler) {
             this.target = target;
             this.outputStream = outputStream;
             this.inputStream = inputStream;
             this.errorStream = errorStream;
-            this.config = config;
-            this.params = params;
+            this.appCompiler = appCompiler;
         }
 
         public void destroy() {
             synchronized(this) {
                 if(!cleanedUp) {
-                    for (LaunchPlugin plugin : config.getLaunchPlugins()) {
-                        plugin.cleanup();
-                    }
+                    appCompiler.launchAsyncCleanup();
                     cleanedUp = true;
                 }
             }            
@@ -358,16 +352,11 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
 
         public int waitFor() throws InterruptedException {
             try {
-                for (LaunchPlugin plugin : config.getLaunchPlugins()) {
-                    plugin.afterLaunch(config, params, target);
-                }
                 return target.waitFor();
             } catch (Throwable t) {
                 synchronized(this) {
                     if(!cleanedUp) {
-                        for (LaunchPlugin plugin : config.getLaunchPlugins()) {
-                            plugin.cleanup();
-                        }
+                        appCompiler.launchAsyncCleanup();
                         cleanedUp = true;
                     }
                 } 
