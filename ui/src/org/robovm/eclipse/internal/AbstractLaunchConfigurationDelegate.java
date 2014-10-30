@@ -58,9 +58,9 @@ import org.robovm.eclipse.RoboVMPlugin;
  */
 public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLaunchConfigurationDelegate {
 
-    protected abstract Arch getArch(ILaunchConfiguration configuration, String mode);
+    protected abstract Arch getArch(ILaunchConfiguration configuration, String mode) throws CoreException;
 
-    protected abstract OS getOS(ILaunchConfiguration configuration, String mode);
+    protected abstract OS getOS(ILaunchConfiguration configuration, String mode) throws CoreException;
 
     protected abstract Config configure(Config.Builder configBuilder, ILaunchConfiguration configuration, String mode)
             throws IOException, CoreException;

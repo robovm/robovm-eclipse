@@ -25,7 +25,6 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.robovm.compiler.target.ios.DeviceType;
 import org.robovm.compiler.target.ios.DeviceType.DeviceFamily;
-import org.robovm.compiler.target.ios.SDK;
 import org.robovm.eclipse.RoboVMPlugin;
 
 /**
@@ -66,7 +65,7 @@ public abstract class IOSSimulatorLaunchShortcut extends AbstractProjectLaunchSh
                 RoboVMPlugin.log(e);
                 continue;
             }
-            if (type.getFamily() == getFamily()) {
+            if (type != null && type.getFamily() == getFamily()) {
                 result.add(config);
             }
         }
