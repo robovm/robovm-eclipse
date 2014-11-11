@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -49,10 +50,13 @@ import org.robovm.compiler.config.Config;
 import org.robovm.compiler.config.Config.Home;
 import org.robovm.compiler.config.OS;
 import org.robovm.compiler.plugin.LaunchPlugin;
+import org.robovm.compiler.plugin.Plugin;
 import org.robovm.compiler.target.LaunchParameters;
 import org.robovm.compiler.util.io.Fifos;
 import org.robovm.compiler.util.io.OpenOnReadFileInputStream;
 import org.robovm.eclipse.RoboVMPlugin;
+
+import com.robovm.debug.server.DebugLaunchPlugin;
 
 /**
  *
@@ -143,7 +147,7 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
             if (ILaunchManager.DEBUG_MODE.equals(mode)) {
                 configBuilder.debug(true);
                 String sourcepaths = RoboVMPlugin.getSourcePaths(javaProject);
-                configBuilder.addPluginArgument("debug:sourcepath=" + sourcepaths);
+                configBuilder.addPluginArgument("debug:sourcepath=" + sourcepaths);                                
             }
 
             if (bootclasspath != null) {
@@ -294,7 +298,6 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
         private final InputStream errorStream;
         private final Config config;
         private final LaunchParameters params;
-        private volatile boolean cleanedUp = false;
 
         ProcessProxy(Process target, OutputStream outputStream, InputStream inputStream, InputStream errorStream,
                 Config config,
@@ -308,14 +311,9 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
         }
 
         public void destroy() {
-            synchronized(this) {
-                if(!cleanedUp) {
-                    for (LaunchPlugin plugin : config.getLaunchPlugins()) {
-                        plugin.cleanup();
-                    }
-                    cleanedUp = true;
-                }
-            }            
+            for (LaunchPlugin plugin : config.getLaunchPlugins()) {
+                plugin.cleanup();
+            }
             target.destroy();
         }
 
@@ -356,22 +354,14 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
             return target.toString();
         }
 
-        public int waitFor() throws InterruptedException {
+        public int waitFor() {
             try {
-                for (LaunchPlugin plugin : config.getLaunchPlugins()) {
-                    plugin.afterLaunch(config, params, target);
-                }
                 return target.waitFor();
             } catch (Throwable t) {
-                synchronized(this) {
-                    if(!cleanedUp) {
-                        for (LaunchPlugin plugin : config.getLaunchPlugins()) {
-                            plugin.cleanup();
-                        }
-                        cleanedUp = true;
-                    }
-                } 
-                throw new RuntimeException(t);
+                // ignore the interrupted exception
+                // which was triggered by a call to
+                // destroy
+                return 0;
             }
         }
     }
