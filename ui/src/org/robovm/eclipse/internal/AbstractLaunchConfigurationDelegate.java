@@ -51,6 +51,7 @@ import org.robovm.compiler.config.Config.Home;
 import org.robovm.compiler.config.OS;
 import org.robovm.compiler.plugin.LaunchPlugin;
 import org.robovm.compiler.plugin.Plugin;
+import org.robovm.compiler.plugin.PluginArgument;
 import org.robovm.compiler.target.LaunchParameters;
 import org.robovm.compiler.util.io.Fifos;
 import org.robovm.compiler.util.io.OpenOnReadFileInputStream;
@@ -162,6 +163,13 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
             if (mainTypeName != null) {
                 configBuilder.mainClass(mainTypeName);
             }
+            // need to add vm args to config builder, so launch plugins can parse them
+            // FIXME we don't check validity here as we do in AppCompiler, as we might
+            // get other VM args as well
+            for(String vmArg: splitArgs(vmArgs)) {
+                configBuilder.addPluginArgument(vmArg.substring(1));
+            }
+            
             configBuilder.tmpDir(tmpDir);
             configBuilder.skipInstall(true);
 
@@ -214,7 +222,7 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
                 launchParameters.setArguments(runArgs);
                 launchParameters.setWorkingDirectory(workingDir);
                 launchParameters.setEnvironment(envToMap(envp));
-                customizeLaunchParameters(launchParameters, configuration, mode);
+                customizeLaunchParameters(launchParameters, configuration, mode);                
                 String label = String.format("%s (%s)", mainTypeName,
                         DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM).format(new Date()));
                 // launch plugin may proxy stdout/stderr fifo, which
