@@ -100,8 +100,8 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
             String mainTypeName = getMainTypeName(configuration);
             File workingDir = getWorkingDirectory(configuration);
             String[] envp = getEnvironment(configuration);
-            String pgmArgs = getProgramArguments(configuration);
-            String vmArgs = getVMArguments(configuration);
+            List<String> pgmArgs = splitArgs(getProgramArguments(configuration));
+            List<String> vmArgs = splitArgs(getVMArguments(configuration));
             String[] classpath = getClasspath(configuration);
             String[] bootclasspath = getBootpath(configuration);
             IJavaProject javaProject = getJavaProject(configuration);
@@ -163,11 +163,24 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
             if (mainTypeName != null) {
                 configBuilder.mainClass(mainTypeName);
             }
-            // need to add vm args to config builder, so launch plugins can parse them
-            // FIXME we don't check validity here as we do in AppCompiler, as we might
-            // get other VM args as well
-            for(String vmArg: splitArgs(vmArgs)) {
-                configBuilder.addPluginArgument(vmArg.substring(1));
+            // we need to filter those vm args that belong to plugins
+            Map<String, PluginArgument> pluginArguments = configBuilder.fetchPluginArguments();
+            Iterator<String> iter = vmArgs.iterator();
+            while(iter.hasNext()) {
+                String arg = iter.next();
+                if (!arg.startsWith("-rvm") && arg.startsWith("-")) {
+                    String argName = arg.substring(1);
+                    if(argName.contains("=")) {
+                        argName = argName.substring(0, argName.indexOf('='));
+                    }
+                    PluginArgument pluginArg = pluginArguments.get(argName);
+                    if (pluginArg != null) {
+                        configBuilder.addPluginArgument(arg.substring(1)); 
+                        iter.remove();
+                    } else {
+                        throw new IllegalArgumentException("Unrecognized plugin argument: " + arg);
+                    }
+                }
             }
             
             configBuilder.tmpDir(tmpDir);
@@ -216,8 +229,8 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
                 monitor.subTask("Launching executable");
                 
                 List<String> runArgs = new ArrayList<String>();
-                runArgs.addAll(splitArgs(vmArgs));
-                runArgs.addAll(splitArgs(pgmArgs));
+                runArgs.addAll(vmArgs);
+                runArgs.addAll(pgmArgs);
                 LaunchParameters launchParameters = config.getTarget().createLaunchParameters();
                 launchParameters.setArguments(runArgs);
                 launchParameters.setWorkingDirectory(workingDir);

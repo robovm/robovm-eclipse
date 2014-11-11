@@ -18,10 +18,5 @@ Bundle-Activator: org.robovm.eclipse.RoboVMPlugin
 Bundle-SymbolicName: org.robovm.eclipse.ui;singleton:=true
 Bundle-ClassPath: .,
  lib/commons-compress.jar,
- lib/robovm-dist-compiler.jar,
- external:/Users/badlogic/workspaces/robovm/robovm-debug/lldb/target/classes,
- external:/Users/badlogic/workspaces/robovm/robovm-debug/debug-info/target/classes,
- external:/Users/badlogic/workspaces/robovm/robovm-debug/server/target/classes,
- external:/Users/badlogic/.m2/repository/org/zeroturnaround/zt-zip/1.7/zt-zip-1.7.jar,
- external:/Users/badlogic/.m2/repository/org/slf4j/slf4j-api/1.6.6/slf4j-api-1.6.6.jar
+ lib/robovm-dist-compiler.jar
 
