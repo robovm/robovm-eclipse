@@ -115,6 +115,7 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
             String[] bootclasspath = getBootpath(configuration);
             IJavaProject javaProject = getJavaProject(configuration);
             int debuggerPort = findFreePort();
+            boolean hasDebugPlugin = false;
 
             if (monitor.isCanceled()) {
                 return;
@@ -160,6 +161,12 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
                 String sourcepaths = RoboVMPlugin.getSourcePaths(javaProject);
                 configBuilder.addPluginArgument("debug:sourcepath=" + sourcepaths);
                 configBuilder.addPluginArgument("debug:jdwpport=" + debuggerPort);
+                // check if we have the debug plugin
+                for (Plugin plugin : configBuilder.getPlugins()) {
+                    if ("DebugLaunchPlugin".equals(plugin.getClass().getSimpleName())) {
+                        hasDebugPlugin = true;
+                    }
+                }
             }
 
             if (bootclasspath != null) {
@@ -269,13 +276,17 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
                 }
 
                 IProcess iProcess = DebugPlugin.newProcess(launch, process, label);
-                if (ILaunchManager.DEBUG_MODE.equals(mode)) {
-                    VirtualMachine vm = attachToVm(monitor, process, debuggerPort);
+                
+                // setup the debugger
+                if (ILaunchManager.DEBUG_MODE.equals(mode) && hasDebugPlugin) {
+                    VirtualMachine vm = attachToVm(monitor, debuggerPort);
                     // we were canceled
-                    if(vm == null) {
+                    if (vm == null) {
+                        process.destroy();
                         return;
                     }
-                    JDIDebugModel.newDebugTarget(launch, vm, mainTypeName + " at localhost:" + debuggerPort, iProcess, true, false, false);
+                    JDIDebugModel.newDebugTarget(launch, vm, mainTypeName + " at localhost:" + debuggerPort, iProcess,
+                            true, false, false);
                 }
                 RoboVMPlugin.consoleInfo("Launch done");
 
@@ -294,41 +305,41 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
             monitor.done();
         }
     }
-    
-    private VirtualMachine attachToVm(IProgressMonitor monitor, Process process, int port) {
+
+    private VirtualMachine attachToVm(IProgressMonitor monitor, int port) throws CoreException {
         VirtualMachineManager manager = Bootstrap.virtualMachineManager();
         AttachingConnector connector = null;
-        for(AttachingConnector con: manager.attachingConnectors()) {
-            if("dt_socket".equalsIgnoreCase(con.transport().name())) {
+        for (AttachingConnector con : manager.attachingConnectors()) {
+            if ("dt_socket".equalsIgnoreCase(con.transport().name())) {
                 connector = con;
                 break;
             }
         }
-        if(connector == null) {
-            throw new DebuggerException("Couldn't find socket transport");
+        if (connector == null) {
+            throw new CoreException(new Status(IStatus.ERROR, RoboVMPlugin.PLUGIN_ID, "Couldn't find socket transport"));
         }
         Map<String, Argument> defaultArguments = connector.defaultArguments();
         defaultArguments.get("hostname").setValue("localhost");
         defaultArguments.get("port").setValue("" + port);
         int retries = 20;
-        DebuggerException exception = null;
-        while(retries > 0) {
+        CoreException exception = null;
+        while (retries > 0) {
             try {
-                return connector.attach(defaultArguments);            
+                return connector.attach(defaultArguments);
             } catch (Exception e) {
-                exception = new DebuggerException("Couldn't connect to JDWP server at localhost:" + port, e);
+                exception = new CoreException(new Status(IStatus.ERROR, RoboVMPlugin.PLUGIN_ID,
+                        "Couldn't connect to JDWP server at localhost:" + port, e));
             }
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
             }
             if (monitor.isCanceled()) {
-                process.destroy();
                 return null;
             }
             retries--;
         }
-        throw new DebuggerException("Couldn't connect to JDWP server at localhost:" + port);
+        throw exception;
     }
 
     private Map<String, String> envToMap(String[] envp) throws IOException {
