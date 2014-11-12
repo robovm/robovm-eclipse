@@ -309,7 +309,8 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
     private VirtualMachine attachToVm(IProgressMonitor monitor, int port) throws CoreException {
         VirtualMachineManager manager = Bootstrap.virtualMachineManager();
         AttachingConnector connector = null;
-        for (AttachingConnector con : manager.attachingConnectors()) {
+        for (Iterator it = manager.attachingConnectors().iterator(); it.hasNext();) {
+            AttachingConnector con = (AttachingConnector) it.next();
             if ("dt_socket".equalsIgnoreCase(con.transport().name())) {
                 connector = con;
                 break;
