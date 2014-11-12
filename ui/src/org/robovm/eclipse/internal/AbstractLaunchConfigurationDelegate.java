@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.net.ServerSocket;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,7 +43,10 @@ import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
+import org.eclipse.debug.core.model.IProcess;
+import org.eclipse.jdi.Bootstrap;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.debug.core.JDIDebugModel;
 import org.eclipse.jdt.launching.AbstractJavaLaunchConfigurationDelegate;
 import org.robovm.compiler.AppCompiler;
 import org.robovm.compiler.config.Arch;
@@ -58,6 +62,11 @@ import org.robovm.compiler.util.io.OpenOnReadFileInputStream;
 import org.robovm.eclipse.RoboVMPlugin;
 
 import com.robovm.debug.server.DebugLaunchPlugin;
+import com.robovm.debug.server.lldb.DebuggerException;
+import com.sun.jdi.VirtualMachine;
+import com.sun.jdi.VirtualMachineManager;
+import com.sun.jdi.connect.AttachingConnector;
+import com.sun.jdi.connect.Connector.Argument;
 
 /**
  *
@@ -105,6 +114,7 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
             String[] classpath = getClasspath(configuration);
             String[] bootclasspath = getBootpath(configuration);
             IJavaProject javaProject = getJavaProject(configuration);
+            int debuggerPort = findFreePort();
 
             if (monitor.isCanceled()) {
                 return;
@@ -148,7 +158,8 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
             if (ILaunchManager.DEBUG_MODE.equals(mode)) {
                 configBuilder.debug(true);
                 String sourcepaths = RoboVMPlugin.getSourcePaths(javaProject);
-                configBuilder.addPluginArgument("debug:sourcepath=" + sourcepaths);                                
+                configBuilder.addPluginArgument("debug:sourcepath=" + sourcepaths);
+                configBuilder.addPluginArgument("debug:jdwpport=" + debuggerPort);
             }
 
             if (bootclasspath != null) {
@@ -166,23 +177,23 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
             // we need to filter those vm args that belong to plugins
             Map<String, PluginArgument> pluginArguments = configBuilder.fetchPluginArguments();
             Iterator<String> iter = vmArgs.iterator();
-            while(iter.hasNext()) {
+            while (iter.hasNext()) {
                 String arg = iter.next();
                 if (!arg.startsWith("-rvm") && arg.startsWith("-")) {
                     String argName = arg.substring(1);
-                    if(argName.contains("=")) {
+                    if (argName.contains("=")) {
                         argName = argName.substring(0, argName.indexOf('='));
                     }
                     PluginArgument pluginArg = pluginArguments.get(argName);
                     if (pluginArg != null) {
-                        configBuilder.addPluginArgument(arg.substring(1)); 
+                        configBuilder.addPluginArgument(arg.substring(1));
                         iter.remove();
                     } else {
                         throw new IllegalArgumentException("Unrecognized plugin argument: " + arg);
                     }
                 }
             }
-            
+
             configBuilder.tmpDir(tmpDir);
             configBuilder.skipInstall(true);
 
@@ -227,7 +238,7 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
             try {
                 RoboVMPlugin.consoleInfo("Launching executable");
                 monitor.subTask("Launching executable");
-                
+
                 List<String> runArgs = new ArrayList<String>();
                 runArgs.addAll(vmArgs);
                 runArgs.addAll(pgmArgs);
@@ -235,7 +246,7 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
                 launchParameters.setArguments(runArgs);
                 launchParameters.setWorkingDirectory(workingDir);
                 launchParameters.setEnvironment(envToMap(envp));
-                customizeLaunchParameters(launchParameters, configuration, mode);                
+                customizeLaunchParameters(launchParameters, configuration, mode);
                 String label = String.format("%s (%s)", mainTypeName,
                         DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM).format(new Date()));
                 // launch plugin may proxy stdout/stderr fifo, which
@@ -257,7 +268,15 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
                     process = new ProcessProxy(process, pipedOut, stdoutStream, stderrStream, config, launchParameters);
                 }
 
-                DebugPlugin.newProcess(launch, process, label);
+                IProcess iProcess = DebugPlugin.newProcess(launch, process, label);
+                if (ILaunchManager.DEBUG_MODE.equals(mode)) {
+                    VirtualMachine vm = attachToVm(monitor, process, debuggerPort);
+                    // we were canceled
+                    if(vm == null) {
+                        return;
+                    }
+                    JDIDebugModel.newDebugTarget(launch, vm, mainTypeName + " at localhost:" + debuggerPort, iProcess, true, false, false);
+                }
                 RoboVMPlugin.consoleInfo("Launch done");
 
                 if (monitor.isCanceled()) {
@@ -274,6 +293,42 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
         } finally {
             monitor.done();
         }
+    }
+    
+    private VirtualMachine attachToVm(IProgressMonitor monitor, Process process, int port) {
+        VirtualMachineManager manager = Bootstrap.virtualMachineManager();
+        AttachingConnector connector = null;
+        for(AttachingConnector con: manager.attachingConnectors()) {
+            if("dt_socket".equalsIgnoreCase(con.transport().name())) {
+                connector = con;
+                break;
+            }
+        }
+        if(connector == null) {
+            throw new DebuggerException("Couldn't find socket transport");
+        }
+        Map<String, Argument> defaultArguments = connector.defaultArguments();
+        defaultArguments.get("hostname").setValue("localhost");
+        defaultArguments.get("port").setValue("" + port);
+        int retries = 20;
+        DebuggerException exception = null;
+        while(retries > 0) {
+            try {
+                return connector.attach(defaultArguments);            
+            } catch (Exception e) {
+                exception = new DebuggerException("Couldn't connect to JDWP server at localhost:" + port, e);
+            }
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+            }
+            if (monitor.isCanceled()) {
+                process.destroy();
+                return null;
+            }
+            retries--;
+        }
+        throw new DebuggerException("Couldn't connect to JDWP server at localhost:" + port);
     }
 
     private Map<String, String> envToMap(String[] envp) throws IOException {
@@ -310,6 +365,24 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
             result.add(unquoteArg(parts[i]));
         }
         return result;
+    }
+
+    public int findFreePort()
+    {
+        ServerSocket socket = null;
+        try {
+            socket = new ServerSocket(0);
+            return socket.getLocalPort();
+        } catch (IOException localIOException2) {
+        } finally {
+            if (socket != null) {
+                try {
+                    socket.close();
+                } catch (IOException localIOException4) {
+                }
+            }
+        }
+        return -1;
     }
 
     private static class ProcessProxy extends Process {

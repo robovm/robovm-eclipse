@@ -10,6 +10,7 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.ui.console;bundle-version="3.5.100",
  org.eclipse.debug.core;bundle-version="3.7.0",
  org.eclipse.debug.ui;bundle-version="3.7.101",
+ org.eclipse.jdt.debug;bundle-version="3.8.101",
  org.eclipse.jdt.debug.ui;bundle-version="3.6.1",
  org.eclipse.jdt.launching;bundle-version="3.6.1"
 Bundle-Version: 1.0.0.qualifier
@@ -18,5 +19,10 @@ Bundle-Activator: org.robovm.eclipse.RoboVMPlugin
 Bundle-SymbolicName: org.robovm.eclipse.ui;singleton:=true
 Bundle-ClassPath: .,
  lib/commons-compress.jar,
- lib/robovm-dist-compiler.jar
+ lib/robovm-dist-compiler.jar,
+ external:/Users/badlogic/workspaces/robovm/robovm-debug/lldb/target/classes,
+ external:/Users/badlogic/workspaces/robovm/robovm-debug/debug-info/target/classes,
+ external:/Users/badlogic/workspaces/robovm/robovm-debug/server/target/classes,
+ external:/Users/badlogic/.m2/repository/org/zeroturnaround/zt-zip/1.7/zt-zip-1.7.jar,
+ external:/Users/badlogic/.m2/repository/org/slf4j/slf4j-api/1.6.6/slf4j-api-1.6.6.jar
 
