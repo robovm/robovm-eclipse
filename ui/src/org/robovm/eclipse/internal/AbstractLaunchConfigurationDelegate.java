@@ -73,9 +73,9 @@ import com.sun.jdi.connect.Connector.Argument;
  */
 public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLaunchConfigurationDelegate {
 
-    protected abstract Arch getArch(ILaunchConfiguration configuration, String mode);
+    protected abstract Arch getArch(ILaunchConfiguration configuration, String mode) throws CoreException;
 
-    protected abstract OS getOS(ILaunchConfiguration configuration, String mode);
+    protected abstract OS getOS(ILaunchConfiguration configuration, String mode) throws CoreException;
 
     protected abstract Config configure(Config.Builder configBuilder, ILaunchConfiguration configuration, String mode)
             throws IOException, CoreException;
@@ -272,7 +272,7 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
                     if (launchParameters.getStderrFifo() != null) {
                         stderrStream = new OpenOnReadFileInputStream(stdErrFifo);
                     }
-                    process = new ProcessProxy(process, pipedOut, stdoutStream, stderrStream, config, launchParameters);
+                    process = new ProcessProxy(process, pipedOut, stdoutStream, stderrStream, compiler);
                 }
 
                 IProcess iProcess = DebugPlugin.newProcess(launch, process, label);
@@ -401,24 +401,25 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
         private final OutputStream outputStream;
         private final InputStream inputStream;
         private final InputStream errorStream;
-        private final Config config;
-        private final LaunchParameters params;
+        private final AppCompiler appCompiler;
+        private volatile boolean cleanedUp = false;
 
         ProcessProxy(Process target, OutputStream outputStream, InputStream inputStream, InputStream errorStream,
-                Config config,
-                LaunchParameters params) {
+                AppCompiler appCompiler) {
             this.target = target;
             this.outputStream = outputStream;
             this.inputStream = inputStream;
             this.errorStream = errorStream;
-            this.config = config;
-            this.params = params;
+            this.appCompiler = appCompiler;
         }
 
         public void destroy() {
-            for (LaunchPlugin plugin : config.getLaunchPlugins()) {
-                plugin.cleanup();
-            }
+            synchronized(this) {
+                if(!cleanedUp) {
+                    appCompiler.launchAsyncCleanup();
+                    cleanedUp = true;
+                }
+            }            
             target.destroy();
         }
 
@@ -463,10 +464,13 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
             try {
                 return target.waitFor();
             } catch (Throwable t) {
-                // ignore the interrupted exception
-                // which was triggered by a call to
-                // destroy
-                return 0;
+                synchronized(this) {
+                    if(!cleanedUp) {
+                        appCompiler.launchAsyncCleanup();
+                        cleanedUp = true;
+                    }
+                } 
+                throw new RuntimeException(t);
             }
         }
     }

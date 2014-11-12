@@ -17,6 +17,7 @@
 package org.robovm.eclipse.internal;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -37,8 +38,8 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.robovm.compiler.config.Arch;
 import org.robovm.compiler.target.ios.DeviceType;
-import org.robovm.compiler.target.ios.SDK;
 import org.robovm.eclipse.RoboVMPlugin;
 
 /**
@@ -62,6 +63,7 @@ public class IOSSimulatorLaunchConfigurationTabGroup extends AbstractLaunchConfi
     public static class SimulatorTab extends RoboVMTab {
 
         private Combo deviceTypeCombo;
+        private Combo archCombo;
 
         @Override
         public void createControl(Composite parent) {
@@ -106,6 +108,23 @@ public class IOSSimulatorLaunchConfigurationTabGroup extends AbstractLaunchConfi
                 }
             });
 
+            Label archLabel = new Label(group, SWT.NONE);
+            archLabel.setFont(group.getFont());
+            archLabel.setText("Arch:");
+            archLabel.setLayoutData(new GridData(GridData.BEGINNING, GridData.CENTER, false, false));
+
+            String[] archs = new String[] {Arch.x86.toString(), Arch.x86_64.toString()};
+            archCombo = new Combo(group, SWT.READ_ONLY | SWT.BORDER);
+            archCombo.setItems(archs);
+            archCombo.select(Arrays.asList(archs).indexOf(IOSSimulatorLaunchConfigurationDelegate.DEFAULT_ARCH.toString()));
+            archCombo.setLayoutData(new GridData(GridData.FILL, GridData.CENTER, true, false));
+            archCombo.addSelectionListener(new SelectionAdapter() {
+                @Override
+                public void widgetSelected(SelectionEvent event) {
+                    updateLaunchConfigurationDialog();
+                }
+            });
+            
             setControl(group);
         }
 
@@ -130,6 +149,17 @@ public class IOSSimulatorLaunchConfigurationTabGroup extends AbstractLaunchConfi
             } catch (Exception e) {
                 RoboVMPlugin.log(e);
             }
+            
+            try {
+                String v = config.getAttribute(IOSSimulatorLaunchConfigurationDelegate.ATTR_IOS_SIM_ARCH,
+                        IOSSimulatorLaunchConfigurationDelegate.DEFAULT_ARCH.toString());
+                int idx = Arrays.asList(archCombo.getItems()).indexOf(v);
+                if (idx != -1) {
+                    archCombo.select(idx);
+                }
+            } catch (Exception e) {
+                RoboVMPlugin.log(e);
+            }
         }
 
         @Override
@@ -137,6 +167,8 @@ public class IOSSimulatorLaunchConfigurationTabGroup extends AbstractLaunchConfi
             super.performApply(wc);
             String selection = deviceTypeCombo.getItem(deviceTypeCombo.getSelectionIndex());
             wc.setAttribute(IOSSimulatorLaunchConfigurationDelegate.ATTR_IOS_SIM_DEVICE_TYPE, selection);
+            String arch = archCombo.getItem(archCombo.getSelectionIndex());
+            wc.setAttribute(IOSSimulatorLaunchConfigurationDelegate.ATTR_IOS_SIM_ARCH, arch);
         }
 
         @Override
@@ -148,6 +180,8 @@ public class IOSSimulatorLaunchConfigurationTabGroup extends AbstractLaunchConfi
             } catch (IOException e) {
                 RoboVMPlugin.log(e);
             }
+            wc.setAttribute(IOSSimulatorLaunchConfigurationDelegate.ATTR_IOS_SIM_ARCH, 
+                    IOSSimulatorLaunchConfigurationDelegate.DEFAULT_ARCH.toString());
         }
 
     }
