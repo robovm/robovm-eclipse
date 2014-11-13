@@ -283,7 +283,7 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
                         return;
                     }
                     JDIDebugModel.newDebugTarget(launch, vm, mainTypeName + " at localhost:" + debuggerPort, iProcess,
-                            true, false, false);
+                            true, false, true);
                 }
                 RoboVMPlugin.consoleInfo("Launch done");
 
