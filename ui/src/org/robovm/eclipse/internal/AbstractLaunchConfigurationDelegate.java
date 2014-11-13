@@ -53,7 +53,6 @@ import org.robovm.compiler.config.Arch;
 import org.robovm.compiler.config.Config;
 import org.robovm.compiler.config.Config.Home;
 import org.robovm.compiler.config.OS;
-import org.robovm.compiler.plugin.LaunchPlugin;
 import org.robovm.compiler.plugin.Plugin;
 import org.robovm.compiler.plugin.PluginArgument;
 import org.robovm.compiler.target.LaunchParameters;
@@ -61,8 +60,6 @@ import org.robovm.compiler.util.io.Fifos;
 import org.robovm.compiler.util.io.OpenOnReadFileInputStream;
 import org.robovm.eclipse.RoboVMPlugin;
 
-import com.robovm.debug.server.DebugLaunchPlugin;
-import com.robovm.debug.server.lldb.DebuggerException;
 import com.sun.jdi.VirtualMachine;
 import com.sun.jdi.VirtualMachineManager;
 import com.sun.jdi.connect.AttachingConnector;
