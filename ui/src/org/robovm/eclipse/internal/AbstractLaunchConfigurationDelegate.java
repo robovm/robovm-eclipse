@@ -51,6 +51,7 @@ import org.eclipse.jdt.launching.AbstractJavaLaunchConfigurationDelegate;
 import org.robovm.compiler.AppCompiler;
 import org.robovm.compiler.config.Arch;
 import org.robovm.compiler.config.Config;
+import org.robovm.compiler.config.Config.Builder;
 import org.robovm.compiler.config.Config.Home;
 import org.robovm.compiler.config.OS;
 import org.robovm.compiler.plugin.Plugin;
@@ -179,24 +180,9 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
                 configBuilder.mainClass(mainTypeName);
             }
             // we need to filter those vm args that belong to plugins
-            Map<String, PluginArgument> pluginArguments = configBuilder.fetchPluginArguments();
-            Iterator<String> iter = vmArgs.iterator();
-            while (iter.hasNext()) {
-                String arg = iter.next();
-                if (!arg.startsWith("-rvm") && arg.startsWith("-")) {
-                    String argName = arg.substring(1);
-                    if (argName.contains("=")) {
-                        argName = argName.substring(0, argName.indexOf('='));
-                    }
-                    PluginArgument pluginArg = pluginArguments.get(argName);
-                    if (pluginArg != null) {
-                        configBuilder.addPluginArgument(arg.substring(1));
-                        iter.remove();
-                    } else {
-                        throw new IllegalArgumentException("Unrecognized plugin argument: " + arg);
-                    }
-                }
-            }
+            // in case of iOS run configs, we can only pass program args
+            filterPluginArguments(vmArgs, configBuilder);
+            filterPluginArguments(pgmArgs, configBuilder);
 
             configBuilder.tmpDir(tmpDir);
             configBuilder.skipInstall(true);
@@ -301,6 +287,27 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
         } finally {
             monitor.done();
         }
+    }
+
+    private void filterPluginArguments(List<String> args, Builder configBuilder) {
+        Map<String, PluginArgument> pluginArguments = configBuilder.fetchPluginArguments();
+        Iterator<String> iter = args.iterator();
+        while (iter.hasNext()) {
+            String arg = iter.next();
+            if (!arg.startsWith("-rvm") && arg.startsWith("-")) {
+                String argName = arg.substring(1);
+                if (argName.contains("=")) {
+                    argName = argName.substring(0, argName.indexOf('='));
+                }
+                PluginArgument pluginArg = pluginArguments.get(argName);
+                if (pluginArg != null) {
+                    configBuilder.addPluginArgument(arg.substring(1));
+                    iter.remove();
+                } else {
+                    throw new IllegalArgumentException("Unrecognized plugin argument: " + arg);
+                }
+            }
+        }        
     }
 
     private VirtualMachine attachToVm(IProgressMonitor monitor, int port) throws CoreException {
