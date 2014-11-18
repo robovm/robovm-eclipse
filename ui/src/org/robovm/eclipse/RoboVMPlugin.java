@@ -40,6 +40,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -290,7 +291,10 @@ public class RoboVMPlugin extends AbstractUIPlugin {
         for (IClasspathEntry entry : javaProject.getResolvedClasspath(true)) {
             IPath path = null;
             if (entry.getEntryKind() == IClasspathEntry.CPE_SOURCE) {
-                path = root.findMember(entry.getPath()).getLocation();
+                IResource resource = root.findMember(entry.getPath());
+                if (resource != null) {
+                    path = resource.getLocation();
+                }
             } else if (entry.getEntryKind() == IClasspathEntry.CPE_LIBRARY) {
                 if (entry.getSourceAttachmentPath() != null) {
                     path = entry.getSourceAttachmentPath();
