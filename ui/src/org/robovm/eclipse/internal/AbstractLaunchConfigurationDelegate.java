@@ -228,6 +228,7 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
             try {
                 RoboVMPlugin.consoleInfo("Launching executable");
                 monitor.subTask("Launching executable");
+                mainTypeName = config.getMainClass();
 
                 List<String> runArgs = new ArrayList<String>();
                 runArgs.addAll(vmArgs);
