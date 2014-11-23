@@ -69,6 +69,7 @@ import com.sun.jdi.connect.Connector.Argument;
 /**
  *
  */
+@SuppressWarnings("restriction")
 public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLaunchConfigurationDelegate {
 
     protected abstract Arch getArch(ILaunchConfiguration configuration, String mode) throws CoreException;
@@ -314,7 +315,7 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
     private VirtualMachine attachToVm(IProgressMonitor monitor, int port) throws CoreException {
         VirtualMachineManager manager = Bootstrap.virtualMachineManager();
         AttachingConnector connector = null;
-        for (Iterator it = manager.attachingConnectors().iterator(); it.hasNext();) {
+        for (Iterator<?> it = manager.attachingConnectors().iterator(); it.hasNext();) {
             AttachingConnector con = (AttachingConnector) it.next();
             if ("dt_socket".equalsIgnoreCase(con.transport().name())) {
                 connector = con;
