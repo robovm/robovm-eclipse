@@ -305,8 +305,6 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
                 if (pluginArg != null) {
                     configBuilder.addPluginArgument(arg.substring(1));
                     iter.remove();
-                } else {
-                    throw new IllegalArgumentException("Unrecognized plugin argument: " + arg);
                 }
             }
         }        
@@ -328,7 +326,7 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
         Map<String, Argument> defaultArguments = connector.defaultArguments();
         defaultArguments.get("hostname").setValue("localhost");
         defaultArguments.get("port").setValue("" + port);
-        int retries = 20;
+        int retries = 60;
         CoreException exception = null;
         while (retries > 0) {
             try {
