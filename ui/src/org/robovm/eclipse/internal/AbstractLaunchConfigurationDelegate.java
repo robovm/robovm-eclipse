@@ -304,8 +304,6 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
                 if (pluginArg != null) {
                     configBuilder.addPluginArgument(arg.substring(1));
                     iter.remove();
-                } else {
-                    throw new IllegalArgumentException("Unrecognized plugin argument: " + arg);
                 }
             }
         }        
