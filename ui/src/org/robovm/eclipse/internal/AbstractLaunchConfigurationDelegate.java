@@ -76,10 +76,10 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
 
     protected abstract OS getOS(ILaunchConfiguration configuration, String mode) throws CoreException;
 
-    protected abstract Config configure(Config.Builder configBuilder, ILaunchConfiguration configuration, String mode)
+    protected abstract Config.Builder configure(Config.Builder configBuilder, ILaunchConfiguration configuration, String mode)
             throws IOException, CoreException;
 
-    protected void customizeLaunchParameters(LaunchParameters launchParameters, ILaunchConfiguration configuration,
+    protected void customizeLaunchParameters(Config config, LaunchParameters launchParameters, ILaunchConfiguration configuration,
             String mode) throws IOException, CoreException {
         launchParameters.setStdoutFifo(Fifos.mkfifo("stdout"));
         launchParameters.setStderrFifo(Fifos.mkfifo("stderr"));
@@ -105,7 +105,7 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
         try {
             monitor.subTask("Verifying launch attributes");
 
-            String mainTypeName = getMainTypeName(configuration);
+            String mainTypeName = verifyMainTypeName(configuration);
             File workingDir = getWorkingDirectory(configuration);
             String[] envp = getEnvironment(configuration);
             List<String> pgmArgs = splitArgs(getProgramArguments(configuration));
@@ -201,7 +201,7 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
                     configBuilder.dumpIntermediates(true);
                 }
                 configBuilder.home(home);
-                config = configure(configBuilder, configuration, mode);
+                config = configure(configBuilder, configuration, mode).build();
                 compiler = new AppCompiler(config);
                 if (monitor.isCanceled()) {
                     return;
@@ -238,7 +238,7 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
                 launchParameters.setArguments(runArgs);
                 launchParameters.setWorkingDirectory(workingDir);
                 launchParameters.setEnvironment(envToMap(envp));
-                customizeLaunchParameters(launchParameters, configuration, mode);
+                customizeLaunchParameters(config, launchParameters, configuration, mode);
                 String label = String.format("%s (%s)", mainTypeName,
                         DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM).format(new Date()));
                 // launch plugin may proxy stdout/stderr fifo, which

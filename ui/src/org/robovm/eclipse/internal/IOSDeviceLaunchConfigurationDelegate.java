@@ -54,7 +54,7 @@ public class IOSDeviceLaunchConfigurationDelegate extends AbstractLaunchConfigur
     }
     
     @Override
-    protected Config configure(Config.Builder configBuilder,
+    protected Config.Builder configure(Config.Builder configBuilder,
             ILaunchConfiguration configuration, String mode) throws IOException, CoreException {
         
         configBuilder.targetType(TargetType.ios);
@@ -71,6 +71,6 @@ public class IOSDeviceLaunchConfigurationDelegate extends AbstractLaunchConfigur
             }
         }
         
-        return configBuilder.build();
+        return configBuilder;
     }
 }

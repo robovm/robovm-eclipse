@@ -57,16 +57,16 @@ public class IOSSimulatorLaunchConfigurationDelegate extends AbstractLaunchConfi
     }
 
     @Override
-    protected Config configure(Config.Builder configBuilder,
+    protected Config.Builder configure(Config.Builder configBuilder,
             ILaunchConfiguration configuration, String mode) throws IOException {
         configBuilder.targetType(TargetType.ios);
-        return configBuilder.build();
+        return configBuilder;
     }
 
     @Override
-    protected void customizeLaunchParameters(LaunchParameters launchParameters,
+    protected void customizeLaunchParameters(Config config, LaunchParameters launchParameters,
             ILaunchConfiguration configuration, String mode) throws IOException, CoreException {
-        super.customizeLaunchParameters(launchParameters, configuration, mode);
+        super.customizeLaunchParameters(config, launchParameters, configuration, mode);
 
         IOSSimulatorLaunchParameters lp = (IOSSimulatorLaunchParameters) launchParameters;
         String deviceTypeId = configuration.getAttribute(ATTR_IOS_SIM_DEVICE_TYPE, (String) null);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Trillian Mobile AB
+ * Copyright (C) 2014 Trillian Mobile AB
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -14,10 +14,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/gpl-2.0.html>.
  */
-package org.robovm.eclipse.internal;
+package org.robovm.eclipse.internal.junit;
 
 import java.io.IOException;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.robovm.compiler.config.Arch;
 import org.robovm.compiler.config.Config;
@@ -26,13 +27,11 @@ import org.robovm.compiler.config.OS;
 import org.robovm.eclipse.RoboVMPlugin;
 
 /**
- * @author niklas
- *
  */
-public class ConsoleLaunchConfigurationDelegate extends AbstractLaunchConfigurationDelegate {
+public class ConsoleJUnitLaunchConfigurationDelegate extends AbstractJUnitLaunchConfigurationDelegate {
 
-    public static final String TYPE_ID = "org.robovm.eclipse.ConsoleLaunchConfigurationType";
-    public static final String TYPE_NAME = "Console Application";
+    public static final String TYPE_ID = "org.robovm.eclipse.ConsoleJUnitLaunchConfigurationType";
+    public static final String TYPE_NAME = "Console JUnit Test";
 
     @Override
     protected Arch getArch(ILaunchConfiguration configuration, String mode) {
@@ -46,8 +45,9 @@ public class ConsoleLaunchConfigurationDelegate extends AbstractLaunchConfigurat
 
     @Override
     protected Config.Builder configure(Config.Builder configBuilder,
-            ILaunchConfiguration configuration, String mode) throws IOException {
+            ILaunchConfiguration configuration, String mode) throws IOException, CoreException {
         
+        configBuilder = super.configure(configBuilder, configuration, mode);
         configBuilder.targetType(TargetType.console);
         
         return configBuilder;
