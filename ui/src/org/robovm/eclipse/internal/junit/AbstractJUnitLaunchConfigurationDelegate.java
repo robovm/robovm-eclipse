@@ -141,7 +141,9 @@ public abstract class AbstractJUnitLaunchConfigurationDelegate extends AbstractL
     }
 
     public String getMainTypeName(ILaunchConfiguration configuration) throws CoreException {
-        return jUnitLauncher.getMainTypeName(configuration);
+        // getMainTypeName() returns the test class. We want the
+        // RemoteTestRunner which is returned by verifyMainTypeName()
+        return jUnitLauncher.verifyMainTypeName(configuration);
     }
 
     public String getProgramArguments(ILaunchConfiguration configuration) throws CoreException {

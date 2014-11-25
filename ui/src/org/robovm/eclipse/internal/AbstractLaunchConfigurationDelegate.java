@@ -105,7 +105,7 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
         try {
             monitor.subTask("Verifying launch attributes");
 
-            String mainTypeName = verifyMainTypeName(configuration);
+            String mainTypeName = getMainTypeName(configuration);
             File workingDir = getWorkingDirectory(configuration);
             String[] envp = getEnvironment(configuration);
             List<String> pgmArgs = splitArgs(getProgramArguments(configuration));
