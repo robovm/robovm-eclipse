@@ -6,6 +6,7 @@ a.out
 /target/
 /ui/target/
 /feature/target/
+/feature/feature.properties
 /update-site/target/
 /ui/lib/
 /tmp/
