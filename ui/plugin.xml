@@ -111,6 +111,16 @@
       sourcePathComputerId="org.eclipse.jdt.launching.sourceLookup.javaSourcePathComputer">
     </launchConfigurationType>
     <launchConfigurationType
+      id="org.robovm.eclipse.IOSSimulatorJUnitLaunchConfigurationType"
+      delegate="org.robovm.eclipse.internal.junit.IOSSimulatorJUnitLaunchConfigurationDelegate"
+      delegateName="iOS Simulator JUnit Test Launcher"
+      modes="debug, run"
+      name="iOS Simulator JUnit Test"
+      public="true"
+      sourceLocatorId="org.eclipse.jdt.launching.sourceLocator.JavaSourceLookupDirector"
+      sourcePathComputerId="org.eclipse.jdt.launching.sourceLookup.javaSourcePathComputer">
+    </launchConfigurationType>
+    <launchConfigurationType
       id="org.robovm.eclipse.IOSDeviceLaunchConfigurationType"
       delegate="org.robovm.eclipse.internal.IOSDeviceLaunchConfigurationDelegate"
       delegateName="iOS Device Launcher"
@@ -137,6 +147,11 @@
         description="iOS Simulator App"
         id="org.robovm.eclipse.IOSSimulatorLaunchConfigurationTabGroup"
         type="org.robovm.eclipse.IOSSimulatorLaunchConfigurationType" />
+    <launchConfigurationTabGroup
+        class="org.robovm.eclipse.internal.junit.IOSSimulatorJUnitLaunchConfigurationTabGroup"
+        description="iOS Simulator JUnit Test"
+        id="org.robovm.eclipse.IOSSimulatorJUnitLaunchConfigurationTabGroup"
+        type="org.robovm.eclipse.IOSSimulatorJUnitLaunchConfigurationType" />
     <launchConfigurationTabGroup
         class="org.robovm.eclipse.internal.IOSDeviceLaunchConfigurationTabGroup"
         description="iOS Device App"
@@ -231,6 +246,27 @@
                   <instanceof value="org.eclipse.core.resources.IProject"/>
                 </or>
               </and>
+            </iterate>
+          </with>
+        </enablement>
+      </contextualLaunch>
+    </shortcut>
+    <shortcut
+        class="org.robovm.eclipse.internal.junit.IOSSimulatorJUnitLaunchShortcut"
+        id="org.robovm.eclipse.IOSSimulatorJUnitLaunchShortcut"
+        label="iOS Simulator JUnit Test"
+        modes="run, debug">
+      <contextualLaunch>
+        <enablement>
+          <with variable="selection">
+            <count value="1" />
+            <iterate>
+              <adapt type="org.eclipse.jdt.core.IJavaElement">
+                <test property="org.eclipse.jdt.core.isInJavaProject"/>
+                <test property="org.eclipse.jdt.core.hasTypeOnClasspath" value="junit.framework.Test"/>
+                <test property="org.eclipse.jdt.junit.canLaunchAsJUnit" forcePluginActivation="true"/>
+                <test property="org.eclipse.jdt.launching.hasProjectNature" args="org.robovm.eclipse.RoboVMNature"/>
+              </adapt>
             </iterate>
           </with>
         </enablement>

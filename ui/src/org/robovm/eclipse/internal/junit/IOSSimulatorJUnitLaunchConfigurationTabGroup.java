@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Trillian Mobile AB
+ * Copyright (C) 2012 Trillian Mobile AB
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -18,27 +18,28 @@ package org.robovm.eclipse.internal.junit;
 
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTabGroup;
 import org.eclipse.debug.ui.CommonTab;
-import org.eclipse.debug.ui.EnvironmentTab;
 import org.eclipse.debug.ui.ILaunchConfigurationDialog;
 import org.eclipse.debug.ui.ILaunchConfigurationTab;
-import org.eclipse.jdt.debug.ui.launchConfigurations.JavaArgumentsTab;
 import org.eclipse.jdt.debug.ui.launchConfigurations.JavaClasspathTab;
 import org.eclipse.jdt.debug.ui.launchConfigurations.JavaSourceLookupTab;
 import org.eclipse.jdt.junit.launcher.JUnitLaunchConfigurationTab;
+import org.robovm.eclipse.internal.IOSEnvironmentTab;
+import org.robovm.eclipse.internal.IOSSimulatorLaunchConfigurationTabGroup;
 
 /**
+ *
  */
-public class ConsoleJUnitLaunchConfigurationTabGroup extends AbstractLaunchConfigurationTabGroup {
+public class IOSSimulatorJUnitLaunchConfigurationTabGroup extends AbstractLaunchConfigurationTabGroup {
 
     @Override
     public void createTabs(ILaunchConfigurationDialog dialog, String mode) {
         setTabs(new ILaunchConfigurationTab[] {
-                new JUnitLaunchConfigurationTab(),
-                new JavaClasspathTab(),
-                new JavaSourceLookupTab(),
-                new EnvironmentTab(),
-                new CommonTab()
+            new JUnitLaunchConfigurationTab(),
+            new IOSSimulatorLaunchConfigurationTabGroup.SimulatorTab(false),
+            new JavaClasspathTab(),
+            new JavaSourceLookupTab(),
+            new IOSEnvironmentTab(),
+            new CommonTab()
         });
     }
-
 }

@@ -61,14 +61,25 @@ public class IOSSimulatorLaunchConfigurationTabGroup extends AbstractLaunchConfi
     }
 
     public static class SimulatorTab extends RoboVMTab {
+        private final boolean showProject;
 
         private Combo deviceTypeCombo;
         private Combo archCombo;
 
+        public SimulatorTab() {
+            this(true);
+        }
+        
+        public SimulatorTab(boolean showProject) {
+            this.showProject = showProject;
+        }
+
         @Override
         public void createControl(Composite parent) {
             Composite root = createRoot(parent);
-            createProjectEditor(root);
+            if (showProject) {
+                createProjectEditor(root);
+            }
             createSimulatorEditor(root);
             setControl(root);
         }

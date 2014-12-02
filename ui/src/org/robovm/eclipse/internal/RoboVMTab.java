@@ -130,18 +130,22 @@ public class RoboVMTab extends AbstractLaunchConfigurationTab {
 
     @Override
     public void initializeFrom(ILaunchConfiguration config) {
-        String projectName = "";
-        try {
-            projectName = config.getAttribute(IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME, "");
-        } catch (CoreException e) {
-            RoboVMPlugin.log(e);
+        if (projectText != null) {
+            String projectName = "";
+            try {
+                projectName = config.getAttribute(IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME, "");
+            } catch (CoreException e) {
+                RoboVMPlugin.log(e);
+            }
+            projectText.setText(projectName);
         }
-        projectText.setText(projectName);
     }
 
     @Override
     public void performApply(ILaunchConfigurationWorkingCopy wc) {
-        wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME, projectText.getText());
+        if (projectText != null) {
+            wc.setAttribute(IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME, projectText.getText());
+        }
     }
 
     @Override
