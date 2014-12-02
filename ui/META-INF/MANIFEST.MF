@@ -23,3 +23,4 @@ Bundle-SymbolicName: org.robovm.eclipse.ui;singleton:=true
 Bundle-ClassPath: .,
  lib/commons-compress.jar,
  lib/robovm-dist-compiler.jar
+Export-Package: com.robovm.lm
