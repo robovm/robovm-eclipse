@@ -45,6 +45,7 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.jdi.Bootstrap;
+import org.eclipse.jdi.internal.VirtualMachineImpl;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.debug.core.JDIDebugModel;
 import org.eclipse.jdt.launching.AbstractJavaLaunchConfigurationDelegate;
@@ -71,6 +72,11 @@ import com.sun.jdi.connect.Connector.Argument;
  */
 @SuppressWarnings("restriction")
 public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLaunchConfigurationDelegate {
+
+    /**
+     * Timeout in ms used by the debugger when waiting for responses from the debugee.
+     */
+    private static final int DEBUGGER_REQUEST_TIMEOUT = 15 * 1000;
 
     protected abstract Arch getArch(ILaunchConfiguration configuration, String mode) throws CoreException;
 
@@ -269,6 +275,9 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
                     if (vm == null) {
                         process.destroy();
                         return;
+                    }
+                    if (vm instanceof VirtualMachineImpl) {
+                        ((VirtualMachineImpl) vm).setRequestTimeout(DEBUGGER_REQUEST_TIMEOUT);
                     }
                     JDIDebugModel.newDebugTarget(launch, vm, mainTypeName + " at localhost:" + debuggerPort, iProcess,
                             true, false, true);
