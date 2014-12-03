@@ -17,6 +17,7 @@
 package org.robovm.eclipse.internal;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
 import org.robovm.compiler.AppCompiler;
 import org.robovm.compiler.ClassCompilerListener;
 import org.robovm.compiler.Version;
@@ -90,83 +92,9 @@ public class RoboVMClassBuilder extends IncrementalProjectBuilder {
         }
         
         try {
-            Home home = RoboVMPlugin.getRoboVMHome();
-            Config.Builder configBuilder = new Config.Builder();
-            configBuilder.skipLinking(true);
-            configBuilder.skipRuntimeLib(true);
-            configBuilder.debug(true);
-            configBuilder.addPluginArgument("debug:sourcepath=" + RoboVMPlugin.getSourcePaths(javaProject));
-            if (home.isDev()) {
-                configBuilder.dumpIntermediates(true);
-            }
-            
-            // Use console target always since we're only going to compile anyway and not link.
-            configBuilder.targetType(TargetType.console);
-            configBuilder.os(RoboVMPlugin.getOS(getProject()));
-            configBuilder.arch(RoboVMPlugin.getArch(getProject()));
-            
-            configBuilder.logger(RoboVMPlugin.getConsoleLogger());
-            
-            for (IClasspathEntry entry : javaProject.getResolvedClasspath(false)) {
-                if (entry.getEntryKind() != IClasspathEntry.CPE_SOURCE) {
-                    IPath path = entry.getPath();
-                    IResource member = root.findMember(path);
-                    if (member != null) {
-                        configBuilder.addClasspathEntry(member.getLocation().toFile());
-                    } else {
-                        if (path.toString().endsWith("/robovm-rt.jar") 
-                                || path.toString().endsWith("/robovm-rt-" + Version.getVersion() + ".jar")
-                                || home.getRtPath().equals(path.toFile())) {
-                            configBuilder.addBootClasspathEntry(path.toFile());
-                        } else {
-                            configBuilder.addClasspathEntry(path.toFile());
-                        }
-                    }
-                }
-            }
-            for (IPath outputPath : outputPaths) {
-                configBuilder.addClasspathEntry(outputPath.toFile());
-            }
-            
-            monitor.beginTask("Incremental build of changed classes", changedClasses.size());
-            configBuilder.home(home);
-            Config config = configBuilder.build();
-            RoboVMPlugin.consoleInfo("Building %d changed classes for target (%s %s debug)", 
-                    changedClasses.size(), config.getOs(), config.getArch());
-            final List<Clazz> compileClasses = new ArrayList<Clazz>();
-            for (String c : changedClasses) {
-                compileClasses.add(config.getClazzes().load(c.replace('.', '/')));
-            }
-            
-            AppCompilerThread thread = new AppCompilerThread(new AppCompiler(config), monitor) {
-                @Override
-                protected void doCompile() throws Exception {
-                    compiler.compile(compileClasses, false, new ClassCompilerListener() {
-                        @Override
-                        public void success(Clazz clazz) {
-                            monitor.worked(1);
-                        }
-                        @Override
-                        public void failure(Clazz clazz, Throwable t) {
-                        }
-                    });
-                }
-            };
-            thread.compile();
-            
-            /*
-             * Set the modified time of the object files for all compiled
-             * class to 'now'. Since we don't compile classes in the order of 
-             * dependency without this some classes may have to be recompiled 
-             * on the next launch since if depend on classes that were compiled 
-             * later by this builder.
-             */
-            long lastModified = System.currentTimeMillis();
-            for (Clazz clazz : compileClasses) {
-                File oFile = config.getOFile(clazz);
-                if (oFile.exists()) {
-                    oFile.setLastModified(lastModified);
-                }
+            if (!tryBuild(monitor, javaProject, outputPaths, root, changedClasses, true)) {
+                // Debug build failed. Retry with release build.
+                tryBuild(monitor, javaProject, outputPaths, root, changedClasses, false);
             }
             
             RoboVMPlugin.consoleInfo(monitor.isCanceled() ? "Build canceled" : "Build done");
@@ -179,6 +107,108 @@ public class RoboVMClassBuilder extends IncrementalProjectBuilder {
         }
         
         return null;
+    }
+
+    private boolean tryBuild(IProgressMonitor monitor, IJavaProject javaProject, List<IPath> outputPaths,
+            IWorkspaceRoot root, List<String> changedClasses, boolean debug) throws IOException, CoreException,
+            JavaModelException, Exception {
+
+        Config config = createConfig(javaProject, outputPaths, root, debug);
+        monitor.beginTask("Incremental build of changed classes", changedClasses.size());
+        RoboVMPlugin.consoleInfo("Building %d changed classes for target (%s %s %s)", 
+                changedClasses.size(), config.getOs(), config.getArch(), debug ? "debug" : "release");
+        final List<Clazz> compileClasses = new ArrayList<Clazz>();
+        for (String c : changedClasses) {
+            compileClasses.add(config.getClazzes().load(c.replace('.', '/')));
+        }
+        
+        AppCompilerThread thread = new AppCompilerThread(new AppCompiler(config), monitor) {
+            @Override
+            protected void doCompile() throws Exception {
+                compiler.compile(compileClasses, false, new ClassCompilerListener() {
+                    @Override
+                    public void success(Clazz clazz) {
+                        monitor.worked(1);
+                    }
+                    @Override
+                    public void failure(Clazz clazz, Throwable t) {
+                    }
+                });
+            }
+        };
+        try {
+            thread.compile();
+        } catch (Exception e) {
+            if (debug && e.getClass().getSimpleName().equals("UnlicensedException")) {
+                // Debug builds are not allowed, Retry with release build.
+                monitor.done();
+                RoboVMPlugin.consoleWarn(e.getMessage());
+                RoboVMPlugin.consoleWarn("Incremental debug build failed. Will try with release build instead.");
+                return false;
+            }
+            throw e;
+        }
+         
+        /*
+         * Set the modified time of the object files for all compiled
+         * class to 'now'. Since we don't compile classes in the order of 
+         * dependency without this some classes may have to be recompiled 
+         * on the next launch since if depend on classes that were compiled 
+         * later by this builder.
+         */
+        long lastModified = System.currentTimeMillis();
+        for (Clazz clazz : compileClasses) {
+            File oFile = config.getOFile(clazz);
+            if (oFile.exists()) {
+                oFile.setLastModified(lastModified);
+            }
+        }
+        return true;
+    }
+
+    private Config createConfig(IJavaProject javaProject, List<IPath> outputPaths, IWorkspaceRoot root, boolean debug)
+            throws IOException, CoreException, JavaModelException {
+        Home home = RoboVMPlugin.getRoboVMHome();
+        Config.Builder configBuilder = new Config.Builder();
+        configBuilder.skipLinking(true);
+        configBuilder.skipRuntimeLib(true);
+        configBuilder.debug(debug);
+        configBuilder.addPluginArgument("debug:sourcepath=" + RoboVMPlugin.getSourcePaths(javaProject));
+        if (home.isDev()) {
+            configBuilder.dumpIntermediates(true);
+        }
+        
+        // Use console target always since we're only going to compile anyway and not link.
+        configBuilder.targetType(TargetType.console);
+        configBuilder.os(RoboVMPlugin.getOS(getProject()));
+        configBuilder.arch(RoboVMPlugin.getArch(getProject()));
+        
+        configBuilder.logger(RoboVMPlugin.getConsoleLogger());
+        
+        for (IClasspathEntry entry : javaProject.getResolvedClasspath(false)) {
+            if (entry.getEntryKind() != IClasspathEntry.CPE_SOURCE) {
+                IPath path = entry.getPath();
+                IResource member = root.findMember(path);
+                if (member != null) {
+                    configBuilder.addClasspathEntry(member.getLocation().toFile());
+                } else {
+                    if (path.toString().endsWith("/robovm-rt.jar") 
+                            || path.toString().endsWith("/robovm-rt-" + Version.getVersion() + ".jar")
+                            || home.getRtPath().equals(path.toFile())) {
+                        configBuilder.addBootClasspathEntry(path.toFile());
+                    } else {
+                        configBuilder.addClasspathEntry(path.toFile());
+                    }
+                }
+            }
+        }
+        for (IPath outputPath : outputPaths) {
+            configBuilder.addClasspathEntry(outputPath.toFile());
+        }
+        
+        configBuilder.home(home);
+        Config config = configBuilder.build();
+        return config;
     }
     
     private void findChangedClassFiles(IProject project, boolean full, final List<IPath> files) throws CoreException {
