@@ -166,7 +166,7 @@ public abstract class AbstractLaunchConfigurationDelegate extends AbstractJavaLa
                 String sourcepaths = RoboVMPlugin.getSourcePaths(javaProject);
                 configBuilder.addPluginArgument("debug:sourcepath=" + sourcepaths);
                 configBuilder.addPluginArgument("debug:jdwpport=" + debuggerPort);
-                configBuilder.addPluginArgument("debug:logfile=" + new File(projectRoot, "debug.log").getAbsolutePath());
+                configBuilder.addPluginArgument("debug:logdir=" + new File(projectRoot, "robovm-logs").getAbsolutePath());
                 // check if we have the debug plugin
                 for (Plugin plugin : configBuilder.getPlugins()) {
                     if ("DebugLaunchPlugin".equals(plugin.getClass().getSimpleName())) {
