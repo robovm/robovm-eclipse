@@ -40,12 +40,21 @@ public class IOSDeviceLaunchConfigurationDelegate extends AbstractLaunchConfigur
             RoboVMPlugin.PLUGIN_ID + ".IOS_DEVICE_SIGNING_ID";
     public static final String ATTR_IOS_DEVICE_PROVISIONING_PROFILE = 
             RoboVMPlugin.PLUGIN_ID + ".IOS_DEVICE_PROVISIONING_PROFILE";
+    public static final String ATTR_IOS_DEVICE_ARCH = 
+            RoboVMPlugin.PLUGIN_ID + ".IOS_DEVICE_ARCH";
 
     public static final String SIGNING_ID_SKIP_SIGNING = "SkipSigning";
-    
+
+    public static final Arch DEFAULT_ARCH = Arch.thumbv7;
+
     @Override
-    protected Arch getArch(ILaunchConfiguration configuration, String mode) {
-        return Arch.thumbv7;
+    protected Arch getArch(ILaunchConfiguration configuration, String mode) throws CoreException {
+        Arch arch = DEFAULT_ARCH;
+        try {
+            arch = Arch.valueOf(configuration.getAttribute(ATTR_IOS_DEVICE_ARCH, DEFAULT_ARCH.toString()));
+        } catch (Throwable t) {
+        }
+        return arch;
     }
 
     @Override

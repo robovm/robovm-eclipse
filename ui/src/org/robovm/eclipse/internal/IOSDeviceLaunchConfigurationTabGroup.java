@@ -16,6 +16,7 @@
  */
 package org.robovm.eclipse.internal;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
@@ -41,6 +42,7 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.robovm.compiler.config.Arch;
 import org.robovm.compiler.target.ios.ProvisioningProfile;
 import org.robovm.compiler.target.ios.SigningIdentity;
 import org.robovm.eclipse.RoboVMPlugin;
@@ -64,11 +66,15 @@ public class IOSDeviceLaunchConfigurationTabGroup extends AbstractLaunchConfigur
     }
 
     public static class DeviceTab extends RoboVMTab {
+        private static final Arch[] POSSIBLE_ARCHS = new Arch[] {Arch.thumbv7, Arch.arm64};
+        private static final String[] POSSIBLE_ARCHS_NAMES = 
+                new String[] {"32-bit (" + Arch.thumbv7 + ")", "64-bit (" + Arch.arm64 + ")"};
 
         private List<SigningIdentity> signingIdentities;
         private List<ProvisioningProfile> provisioningProfiles;
         private Combo signingIdCombo;
         private Combo profileCombo;
+        private Combo archCombo;
         
         public DeviceTab() {
         }
@@ -140,6 +146,22 @@ public class IOSDeviceLaunchConfigurationTabGroup extends AbstractLaunchConfigur
                 }
             });
 
+            Label archLabel = new Label(group, SWT.NONE);
+            archLabel.setFont(group.getFont());
+            archLabel.setText("Arch:");
+            archLabel.setLayoutData(new GridData(GridData.BEGINNING, GridData.CENTER, false, false));
+            
+            archCombo = new Combo(group, SWT.READ_ONLY | SWT.BORDER);
+            archCombo.setItems(POSSIBLE_ARCHS_NAMES);
+            archCombo.select(Arrays.asList(POSSIBLE_ARCHS).indexOf(IOSDeviceLaunchConfigurationDelegate.DEFAULT_ARCH));
+            archCombo.setLayoutData(new GridData(GridData.FILL, GridData.CENTER, true, false));
+            archCombo.addSelectionListener(new SelectionAdapter() {
+                @Override
+                public void widgetSelected(SelectionEvent event) {
+                    updateLaunchConfigurationDialog();
+                }
+            });
+            
             setControl(group);
         }
 
@@ -184,6 +206,19 @@ public class IOSDeviceLaunchConfigurationTabGroup extends AbstractLaunchConfigur
             } catch (CoreException e) {
                 RoboVMPlugin.log(e);
             }
+            
+            try {
+                Arch v = Arch.valueOf(config.getAttribute(IOSDeviceLaunchConfigurationDelegate.ATTR_IOS_DEVICE_ARCH,
+                        IOSDeviceLaunchConfigurationDelegate.DEFAULT_ARCH.toString()));
+                int idx = Arrays.asList(POSSIBLE_ARCHS).indexOf(v);
+                if (idx != -1) {
+                    archCombo.select(idx);
+                }
+            } catch (Exception e) {
+                RoboVMPlugin.log(e);
+                archCombo.select(Arrays.asList(POSSIBLE_ARCHS).indexOf(IOSDeviceLaunchConfigurationDelegate.DEFAULT_ARCH));
+            }
+
         }
 
         @Override
@@ -203,6 +238,9 @@ public class IOSDeviceLaunchConfigurationTabGroup extends AbstractLaunchConfigur
             ProvisioningProfile profile = profileIndex == 0 ? null : provisioningProfiles.get(profileIndex - 1);
             wc.setAttribute(IOSDeviceLaunchConfigurationDelegate.ATTR_IOS_DEVICE_PROVISIONING_PROFILE, 
                     profile != null ? profile.getUuid() : null);
+
+            Arch arch = POSSIBLE_ARCHS[archCombo.getSelectionIndex()];
+            wc.setAttribute(IOSDeviceLaunchConfigurationDelegate.ATTR_IOS_DEVICE_ARCH, arch.toString());
         }
 
         @Override
@@ -210,6 +248,8 @@ public class IOSDeviceLaunchConfigurationTabGroup extends AbstractLaunchConfigur
             super.setDefaults(wc);
             wc.setAttribute(IOSDeviceLaunchConfigurationDelegate.ATTR_IOS_DEVICE_SIGNING_ID, (String) null);
             wc.setAttribute(IOSDeviceLaunchConfigurationDelegate.ATTR_IOS_DEVICE_PROVISIONING_PROFILE, (String) null);
+            wc.setAttribute(IOSDeviceLaunchConfigurationDelegate.ATTR_IOS_DEVICE_ARCH, 
+                    IOSDeviceLaunchConfigurationDelegate.DEFAULT_ARCH.toString());
         }
         
     }
