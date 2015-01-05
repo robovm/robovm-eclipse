@@ -19,7 +19,6 @@ package org.robovm.eclipse.internal;
 import java.util.Arrays;
 import java.util.List;
 
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
@@ -27,12 +26,8 @@ import org.eclipse.debug.ui.AbstractLaunchConfigurationTabGroup;
 import org.eclipse.debug.ui.CommonTab;
 import org.eclipse.debug.ui.ILaunchConfigurationDialog;
 import org.eclipse.debug.ui.ILaunchConfigurationTab;
-import org.eclipse.debug.ui.WorkingDirectoryBlock;
-import org.eclipse.jdt.debug.ui.launchConfigurations.JavaArgumentsTab;
 import org.eclipse.jdt.debug.ui.launchConfigurations.JavaClasspathTab;
 import org.eclipse.jdt.debug.ui.launchConfigurations.JavaSourceLookupTab;
-import org.eclipse.jdt.internal.debug.ui.launcher.JavaWorkingDirectoryBlock;
-import org.eclipse.jdt.internal.debug.ui.launcher.VMArgumentsBlock;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -82,7 +77,7 @@ public class IOSDeviceLaunchConfigurationTabGroup extends AbstractLaunchConfigur
         private String[] readSigningIdentities() {
             String[] result = new String[signingIdentities.size() + 2];
             int i = 0;
-            result[i++] = "Auto (must start with 'iPhone Developer')";
+            result[i++] = "Auto (matches 'iPhone Developer|iOS Development')";
             result[i++] = "Don't sign";
             for (SigningIdentity sid : signingIdentities) {
                 result[i++] = sid.getName();
