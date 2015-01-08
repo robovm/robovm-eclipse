@@ -16,6 +16,10 @@
  */
 package org.robovm.eclipse.internal;
 
+import static org.robovm.eclipse.RoboVMPlugin.*;
+
+import java.util.Arrays;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
@@ -36,7 +40,6 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
 import org.eclipse.ui.dialogs.PreferencesUtil;
 import org.osgi.service.prefs.BackingStoreException;
-import org.robovm.compiler.config.Arch;
 import org.robovm.compiler.config.OS;
 import org.robovm.eclipse.RoboVMPlugin;
 
@@ -45,6 +48,35 @@ import org.robovm.eclipse.RoboVMPlugin;
  *
  */
 public class ProjectProperties {
+
+    private static final String[] POSSIBLE_ARCH_VALUES;
+    private static final String[] POSSIBLE_ARCH_NAMES;
+    private static final String[] POSSIBLE_OS_VALUES;
+    private static final String[] POSSIBLE_OS_NAMES;
+
+    static {
+        POSSIBLE_ARCH_VALUES = new String[ALL_ARCH_VALUES.length + 2];
+        POSSIBLE_ARCH_NAMES = new String[ALL_ARCH_NAMES.length + 2];
+        POSSIBLE_ARCH_NAMES[0] = "Use workspace default";
+        POSSIBLE_ARCH_VALUES[0] = null;
+        POSSIBLE_ARCH_NAMES[1] = "Auto (build for current host)";
+        POSSIBLE_ARCH_VALUES[1] = ARCH_AUTO;
+        for (int i = 0; i < ALL_ARCH_NAMES.length; i++) {
+            POSSIBLE_ARCH_NAMES[i + 2] = ALL_ARCH_NAMES[i];
+            POSSIBLE_ARCH_VALUES[i + 2] = ALL_ARCH_VALUES[i].toString();
+        }
+        
+        POSSIBLE_OS_VALUES = new String[OS.values().length + 2];
+        POSSIBLE_OS_NAMES = new String[OS.values().length + 2];
+        POSSIBLE_OS_NAMES[0] = "Use workspace default";
+        POSSIBLE_OS_VALUES[0] = null;
+        POSSIBLE_OS_NAMES[1] = "Auto (build for current host)";
+        POSSIBLE_OS_VALUES[1] = OS_AUTO;
+        for (int i = 0; i < OS.values().length; i++) {
+            POSSIBLE_OS_NAMES[i + 2] = OS.values()[i].toString();
+            POSSIBLE_OS_VALUES[i + 2] = OS.values()[i].toString();
+        }
+    }
 
     private Composite composite;
     private String arch = null;
@@ -81,34 +113,12 @@ public class ProjectProperties {
     
     public void setArch(String arch) {
         this.arch = arch;
-        if (arch == null) {
-            archCombo.select(0);
-        } else if (arch.equals(RoboVMPlugin.ARCH_AUTO)) {
-            archCombo.select(1);
-        } else {
-            for (int i = 0; i < archCombo.getItemCount(); i++) {
-                if (arch.equals(archCombo.getItem(i))) {
-                    archCombo.select(i);
-                    break;
-                }
-            }
-        }
+        archCombo.select(Arrays.asList(POSSIBLE_ARCH_VALUES).indexOf(arch));
     }
     
     public void setOs(String os) {
         this.os = os;
-        if (os == null) {
-            osCombo.select(0);
-        } else if (os.equals(RoboVMPlugin.OS_AUTO)) {
-            osCombo.select(1);
-        } else {
-            for (int i = 0; i < osCombo.getItemCount(); i++) {
-                if (os.equals(osCombo.getItem(i))) {
-                    osCombo.select(i);
-                    break;
-                }
-            }
-        }
+        osCombo.select(Arrays.asList(POSSIBLE_OS_VALUES).indexOf(os));
     }
     
     protected void createControls(Composite parent) {
@@ -118,25 +128,14 @@ public class ProjectProperties {
         archLabel.setLayoutData(new GridData(GridData.BEGINNING, GridData.CENTER, false, false));
         
         archCombo = new Combo(parent, SWT.READ_ONLY | SWT.BORDER);
-        archCombo.setItems(new String[] {
-                "Use workspace default", 
-                "Auto (build for current host)",
-                Arch.thumbv7.toString(),
-                Arch.x86.toString()
-        });
+        archCombo.setItems(POSSIBLE_ARCH_NAMES);
         archCombo.select(0);
         archCombo.setLayoutData(new GridData(GridData.FILL, GridData.CENTER, false, false));
         archCombo.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 int index = archCombo.getSelectionIndex();
-                if (index == 0) {
-                    arch = null;
-                } else if (index == 1) {
-                    arch = RoboVMPlugin.ARCH_AUTO;
-                } else {
-                    arch = archCombo.getItem(index);                        
-                }
+                arch = POSSIBLE_ARCH_VALUES[index];
             }
         });
 
@@ -150,26 +149,14 @@ public class ProjectProperties {
         osLabel.setLayoutData(new GridData(GridData.BEGINNING, GridData.CENTER, false, false));
         
         osCombo = new Combo(parent, SWT.READ_ONLY | SWT.BORDER);
-        osCombo.setItems(new String[] {
-                "Use workspace default", 
-                "Auto (build for current host)",
-                OS.macosx.toString(),
-                OS.ios.toString(),
-                OS.linux.toString()
-        });
+        osCombo.setItems(POSSIBLE_OS_NAMES);
         osCombo.select(0);
         osCombo.setLayoutData(new GridData(GridData.FILL, GridData.CENTER, false, false));
         osCombo.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 int index = osCombo.getSelectionIndex();
-                if (index == 0) {
-                    os = null;
-                } else if (index == 1) {
-                    os = RoboVMPlugin.OS_AUTO;
-                } else {
-                    os = osCombo.getItem(index);                        
-                }
+                os = POSSIBLE_OS_VALUES[index];
             }
         });
         

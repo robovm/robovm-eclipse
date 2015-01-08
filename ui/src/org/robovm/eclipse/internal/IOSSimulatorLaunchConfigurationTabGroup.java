@@ -61,9 +61,8 @@ public class IOSSimulatorLaunchConfigurationTabGroup extends AbstractLaunchConfi
     }
 
     public static class SimulatorTab extends RoboVMTab {
-        private static final Arch[] POSSIBLE_ARCHS = new Arch[] {Arch.x86, Arch.x86_64};
-        private static final String[] POSSIBLE_ARCHS_NAMES = 
-                new String[] {"32-bit (" + Arch.x86 + ")", "64-bit (" + Arch.x86_64 + ")"};
+        private static final Arch[] POSSIBLE_ARCH_VALUES = RoboVMPlugin.IOS_SIM_ARCH_VALUES;
+        private static final String[] POSSIBLE_ARCH_NAMES = RoboVMPlugin.IOS_SIM_ARCH_NAMES;
         
         private final boolean showProject;
 
@@ -129,8 +128,8 @@ public class IOSSimulatorLaunchConfigurationTabGroup extends AbstractLaunchConfi
             archLabel.setLayoutData(new GridData(GridData.BEGINNING, GridData.CENTER, false, false));
 
             archCombo = new Combo(group, SWT.READ_ONLY | SWT.BORDER);
-            archCombo.setItems(POSSIBLE_ARCHS_NAMES);
-            archCombo.select(Arrays.asList(POSSIBLE_ARCHS).indexOf(IOSSimulatorLaunchConfigurationDelegate.DEFAULT_ARCH));
+            archCombo.setItems(POSSIBLE_ARCH_NAMES);
+            archCombo.select(Arrays.asList(POSSIBLE_ARCH_VALUES).indexOf(IOSSimulatorLaunchConfigurationDelegate.DEFAULT_ARCH));
             archCombo.setLayoutData(new GridData(GridData.FILL, GridData.CENTER, true, false));
             archCombo.addSelectionListener(new SelectionAdapter() {
                 @Override
@@ -167,13 +166,13 @@ public class IOSSimulatorLaunchConfigurationTabGroup extends AbstractLaunchConfi
             try {
                 Arch v = Arch.valueOf(config.getAttribute(IOSSimulatorLaunchConfigurationDelegate.ATTR_IOS_SIM_ARCH,
                         IOSSimulatorLaunchConfigurationDelegate.DEFAULT_ARCH.toString()));
-                int idx = Arrays.asList(POSSIBLE_ARCHS).indexOf(v);
+                int idx = Arrays.asList(POSSIBLE_ARCH_VALUES).indexOf(v);
                 if (idx != -1) {
                     archCombo.select(idx);
                 }
             } catch (Exception e) {
                 RoboVMPlugin.log(e);
-                archCombo.select(Arrays.asList(POSSIBLE_ARCHS).indexOf(IOSSimulatorLaunchConfigurationDelegate.DEFAULT_ARCH));
+                archCombo.select(Arrays.asList(POSSIBLE_ARCH_VALUES).indexOf(IOSSimulatorLaunchConfigurationDelegate.DEFAULT_ARCH));
             }
         }
 
@@ -182,7 +181,7 @@ public class IOSSimulatorLaunchConfigurationTabGroup extends AbstractLaunchConfi
             super.performApply(wc);
             String selection = deviceTypeCombo.getItem(deviceTypeCombo.getSelectionIndex());
             wc.setAttribute(IOSSimulatorLaunchConfigurationDelegate.ATTR_IOS_SIM_DEVICE_TYPE, selection);
-            Arch arch = POSSIBLE_ARCHS[archCombo.getSelectionIndex()];
+            Arch arch = POSSIBLE_ARCH_VALUES[archCombo.getSelectionIndex()];
             wc.setAttribute(IOSSimulatorLaunchConfigurationDelegate.ATTR_IOS_SIM_ARCH, arch.toString());
         }
 

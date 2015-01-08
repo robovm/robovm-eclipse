@@ -22,5 +22,13 @@ Bundle-Activator: org.robovm.eclipse.RoboVMPlugin
 Bundle-SymbolicName: org.robovm.eclipse.ui;singleton:=true
 Bundle-ClassPath: .,
  lib/commons-compress.jar,
- lib/robovm-dist-compiler.jar
+ lib/robovm-dist-compiler.jar,
+ external:/Users/niklas/Projects/robovm-debug/lldb/target/classes,
+ external:/Users/niklas/Projects/robovm-debug/debug-info/target/classes,
+ external:/Users/niklas/Projects/robovm-debug/server/target/classes,
+ external:/Users/niklas/Projects/robovm-lm/target/classes,
+ external:/Users/niklas/.m2/repository/org/zeroturnaround/zt-zip/1.7/zt-zip-1.7.jar,
+ external:/Users/niklas/.m2/repository/org/slf4j/slf4j-api/1.6.6/slf4j-api-1.6.6.jar,
+ external:/Users/niklas/.m2/repository/com/badlogicgames/jdwp-analyzer/1.1/jdwp-analyzer-1.1.jar,
+ external:/Users/niklas/.m2/repository/net/java/dev/jna/jna/4.1.0/jna-4.1.0.jar
 Export-Package: com.robovm.lm

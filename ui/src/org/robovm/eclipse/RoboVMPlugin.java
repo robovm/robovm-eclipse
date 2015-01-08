@@ -56,6 +56,7 @@ import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
@@ -70,6 +71,7 @@ import org.eclipse.ui.console.IConsoleConstants;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.eclipse.ui.preferences.ScopedPreferenceStore;
 import org.osgi.framework.BundleContext;
 import org.robovm.compiler.Version;
 import org.robovm.compiler.config.Arch;
@@ -95,7 +97,26 @@ public class RoboVMPlugin extends AbstractUIPlugin {
     public static final String ARCH_AUTO = "auto";
     public static final String OS_AUTO = "auto";
 
+    public static final Arch[] ALL_ARCH_VALUES = new Arch[] {Arch.thumbv7, Arch.arm64, Arch.x86, Arch.x86_64};
+    public static final String[] ALL_ARCH_NAMES = 
+            new String[] {
+                "32-bit ARM (" + Arch.thumbv7 + ")", 
+                "64-bit ARM (" + Arch.arm64 + ")", 
+                "32-bit x86 (" + Arch.x86 + ")", 
+                "64-bit x86 (" + Arch.x86_64 + ")"};
+    public static final Arch[] IOS_DEVICE_ARCH_VALUES = new Arch[] {Arch.thumbv7, Arch.arm64};
+    public static final String[] IOS_DEVICE_ARCH_NAMES = 
+            new String[] {
+                "32-bit (" + Arch.thumbv7 + ")", 
+                "64-bit (" + Arch.arm64 + ")"};
+    public static final Arch[] IOS_SIM_ARCH_VALUES = new Arch[] {Arch.x86, Arch.x86_64};
+    public static final String[] IOS_SIM_ARCH_NAMES = 
+            new String[] {
+                "32-bit (" + Arch.x86 + ")", 
+                "64-bit (" + Arch.x86_64 + ")"};
+    
     private static RoboVMPlugin plugin;
+    private static IPreferenceStore pluginPreferencesStore;
     private static Config.Home roboVMHome = null;
 
     private boolean showConsoleOnWrite = true;
@@ -142,6 +163,7 @@ public class RoboVMPlugin extends AbstractUIPlugin {
     public void start(BundleContext context) throws Exception {
         super.start(context);
         plugin = this;
+        pluginPreferencesStore = new ScopedPreferenceStore(InstanceScope.INSTANCE, PLUGIN_ID);
 
         // Set up the console
         console = new MessageConsole("RoboVM Console", null);
@@ -187,6 +209,10 @@ public class RoboVMPlugin extends AbstractUIPlugin {
         return plugin;
     }
 
+    public static IPreferenceStore getPluginPreferenceStore() {
+        return pluginPreferencesStore;
+    }
+    
     public static synchronized Display getDisplay() {
         if (plugin != null) {
             IWorkbench workbench = plugin.getWorkbench();

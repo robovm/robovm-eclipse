@@ -23,7 +23,6 @@ import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
-import org.robovm.compiler.config.Arch;
 import org.robovm.compiler.config.OS;
 import org.robovm.eclipse.RoboVMPlugin;
 
@@ -36,9 +35,21 @@ public class RoboVMPreferencePage extends FieldEditorPreferencePage implements
 
     public static final String ID = "org.robovm.eclipse.preferences.main";
     
+    private static final String[][] POSSIBLE_ARCH_NAMES_AND_VALUES;
+
+    static {
+        POSSIBLE_ARCH_NAMES_AND_VALUES = new String[ALL_ARCH_NAMES.length + 1][2];
+        POSSIBLE_ARCH_NAMES_AND_VALUES[0][0] = "Auto (build for current host)";
+        POSSIBLE_ARCH_NAMES_AND_VALUES[0][1] = ARCH_AUTO;
+        for (int i = 0; i < ALL_ARCH_NAMES.length; i++) {
+            POSSIBLE_ARCH_NAMES_AND_VALUES[i + 1][0] = ALL_ARCH_NAMES[i];
+            POSSIBLE_ARCH_NAMES_AND_VALUES[i + 1][1] = ALL_ARCH_VALUES[i].toString();
+        }
+    }
+    
     public RoboVMPreferencePage() {
         super("RoboVM", GRID);
-        setPreferenceStore(RoboVMPlugin.getDefault().getPreferenceStore());
+        setPreferenceStore(RoboVMPlugin.getPluginPreferenceStore());
     }
 
     @Override
@@ -50,11 +61,7 @@ public class RoboVMPreferencePage extends FieldEditorPreferencePage implements
         final Composite parent = getFieldEditorParent();
         
         ComboFieldEditor archFieldEditor = new ComboFieldEditor(PREFERENCE_INCREMENTAL_BUILD_ARCH, 
-                "Default arch:", new String[][] {
-                {"Auto (build for current host)", ARCH_AUTO},
-                {Arch.thumbv7.toString(), Arch.thumbv7.toString()},
-                {Arch.x86.toString(), Arch.x86.toString()}
-        }, parent);
+                "Default arch:", POSSIBLE_ARCH_NAMES_AND_VALUES, parent);
         addField(archFieldEditor);
         
         ComboFieldEditor osFieldEditor = new ComboFieldEditor(PREFERENCE_INCREMENTAL_BUILD_OS, 
