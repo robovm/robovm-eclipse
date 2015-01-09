@@ -17,6 +17,9 @@
 package org.robovm.eclipse.internal.actions;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -41,27 +44,57 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.robovm.compiler.config.Arch;
 import org.robovm.compiler.target.ios.ProvisioningProfile;
 import org.robovm.compiler.target.ios.SigningIdentity;
+import org.robovm.eclipse.RoboVMPlugin;
 
 /**
  * 
  */
 public class CreateIPADialog extends TitleAreaDialog {
 
+    private static final Arch[][] POSSIBLE_ARCH_VALUES;
+    private static final String[] POSSIBLE_ARCH_NAMES;
+
+    static {
+        POSSIBLE_ARCH_VALUES = new Arch[RoboVMPlugin.IOS_DEVICE_ARCH_VALUES.length + 1][];
+        POSSIBLE_ARCH_NAMES = new String[RoboVMPlugin.IOS_DEVICE_ARCH_NAMES.length + 1];
+        POSSIBLE_ARCH_VALUES[0] = RoboVMPlugin.IOS_DEVICE_ARCH_VALUES;
+        POSSIBLE_ARCH_NAMES[0] = "All - " + join(RoboVMPlugin.IOS_DEVICE_ARCH_NAMES);
+        for (int i = 0; i < RoboVMPlugin.IOS_DEVICE_ARCH_VALUES.length; i++) {
+            POSSIBLE_ARCH_VALUES[i + 1] = new Arch[] {RoboVMPlugin.IOS_DEVICE_ARCH_VALUES[i]}; 
+            POSSIBLE_ARCH_NAMES[i + 1] = RoboVMPlugin.IOS_DEVICE_ARCH_NAMES[i]; 
+        }
+    }
+    
+    private static String join(String[] strings) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < strings.length; i++) {
+            if (i > 0) {
+                sb.append(" + ");
+            }
+            sb.append(strings[i]);
+        }
+        return sb.toString();
+    }
+    
     private Composite container;
     private Text txtDestDir;
     private Combo coSigningId;
     private Combo coProvProfile;
+    private Combo coArchs;
 
     private String destinationDir;
     private String signingIdentity;
     private String provisioningProfile;
+    private List<Arch> archs;
 
     private List<ProvisioningProfile> provisioningProfiles;
     
     public CreateIPADialog(Shell parentShell) {
         super(parentShell);
+        archs = new ArrayList<Arch>(Arrays.asList(RoboVMPlugin.IOS_DEVICE_ARCH_VALUES));
     }
 
     @Override
@@ -100,6 +133,8 @@ public class CreateIPADialog extends TitleAreaDialog {
         } else {
             this.provisioningProfile = null;
         }
+        archs.clear();
+        archs.addAll(Arrays.asList(POSSIBLE_ARCH_VALUES[coArchs.getSelectionIndex()]));
         super.okPressed();
     }
     
@@ -159,6 +194,13 @@ public class CreateIPADialog extends TitleAreaDialog {
         coProvProfile.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
         coProvProfile.setItems(readProvisioningProfiles());
 
+        Label lbArchs = new Label(container, SWT.NONE);
+        lbArchs.setText("Architectures");
+
+        coArchs = new Combo(container, SWT.READ_ONLY);
+        coArchs.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
+        coArchs.setItems(POSSIBLE_ARCH_NAMES);
+
         new Label(container, SWT.NONE);
         new Label(container, SWT.NONE);
         new Label(container, SWT.NONE);
@@ -207,6 +249,13 @@ public class CreateIPADialog extends TitleAreaDialog {
                 // Not found
             }
         }
+        coArchs.select(0);
+        for (int i = 0; i < POSSIBLE_ARCH_VALUES.length; i++) {
+            if (new HashSet<>(archs).equals(new HashSet<>(Arrays.asList(POSSIBLE_ARCH_VALUES[i])))) {
+                coArchs.select(i);
+                break;
+            }
+        }
         
         txtDestDir.addModifyListener(fieldsChangedListener);
         coSigningId.addModifyListener(fieldsChangedListener);
@@ -229,6 +278,10 @@ public class CreateIPADialog extends TitleAreaDialog {
 
     public String getProvisioningProfile() {
         return provisioningProfile;
+    }
+    
+    public List<Arch> getArchs() {
+        return archs;
     }
     
     private String[] readSigningIdentities() {

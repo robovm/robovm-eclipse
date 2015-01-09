@@ -45,7 +45,6 @@ import org.robovm.compiler.AppCompiler;
 import org.robovm.compiler.config.Arch;
 import org.robovm.compiler.config.Config;
 import org.robovm.compiler.config.OS;
-import org.robovm.compiler.target.ios.IOSTarget;
 import org.robovm.compiler.target.ios.ProvisioningProfile;
 import org.robovm.compiler.target.ios.SigningIdentity;
 import org.robovm.eclipse.RoboVMPlugin;
@@ -84,6 +83,7 @@ public class CreateIPAAction implements IObjectActionDelegate {
         final String destDir = dialog.getDestinationDir();
         final String signingIdentity = dialog.getSigningIdentity();
         final String provisioningProfile = dialog.getProvisioningProfile();
+        final List<Arch> archs = dialog.getArchs();
 
         new Job("Package for App Store/Ad-Hoc distribution") {
 
@@ -92,7 +92,7 @@ public class CreateIPAAction implements IObjectActionDelegate {
                 try {
                     RoboVMPlugin.consoleInfo("Creating package in " + destDir + " ...");
                     if (monitor != null) {
-                        monitor.beginTask("Package for App Store/Ad-Hoc distribution", 4);
+                        monitor.beginTask("Package for App Store/Ad-Hoc distribution", 3);
                     }
 
                     File projectRoot = project.getLocation().toFile();
@@ -121,19 +121,16 @@ public class CreateIPAAction implements IObjectActionDelegate {
                     }
 
                     AppCompiler compiler = new AppCompiler(config);
-                    AppCompilerThread thread = new AppCompilerThread(compiler, monitor);
+                    AppCompilerThread thread = new AppCompilerThread(compiler, monitor) {
+                        protected void doCompile() throws Exception {
+                            compiler.createIpa(archs);
+                        }
+                    };
                     thread.compile();
                     if (monitor != null && monitor.isCanceled()) {
                         RoboVMPlugin.consoleInfo("Build canceled");
                         return Status.CANCEL_STATUS;
                     }
-
-                    if (monitor != null) {
-                        monitor.worked(1);
-                    }
-
-                    IOSTarget target = (IOSTarget) config.getTarget();
-                    target.createIpa();
 
                     if (monitor != null) {
                         monitor.worked(1);
