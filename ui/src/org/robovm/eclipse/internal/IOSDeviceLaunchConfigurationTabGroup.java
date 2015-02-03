@@ -26,8 +26,8 @@ import org.eclipse.debug.ui.AbstractLaunchConfigurationTabGroup;
 import org.eclipse.debug.ui.CommonTab;
 import org.eclipse.debug.ui.ILaunchConfigurationDialog;
 import org.eclipse.debug.ui.ILaunchConfigurationTab;
+import org.eclipse.debug.ui.sourcelookup.SourceLookupTab;
 import org.eclipse.jdt.debug.ui.launchConfigurations.JavaClasspathTab;
-import org.eclipse.jdt.debug.ui.launchConfigurations.JavaSourceLookupTab;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -54,7 +54,7 @@ public class IOSDeviceLaunchConfigurationTabGroup extends AbstractLaunchConfigur
                 new DeviceTab(),
                 new IOSArgumentsTab(),
                 new JavaClasspathTab(),
-                new JavaSourceLookupTab(),
+                new SourceLookupTab(),
                 new IOSEnvironmentTab(),
                 new CommonTab()
         });
