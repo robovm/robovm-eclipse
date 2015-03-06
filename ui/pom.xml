@@ -35,6 +35,12 @@
   </dependencyManagement>
 
   <build>
+    <resources>
+      <resource>
+        <directory>icons</directory>
+        <targetPath>icons</targetPath>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <artifactId>maven-clean-plugin</artifactId>

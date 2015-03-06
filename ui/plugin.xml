@@ -131,6 +131,33 @@
       sourcePathComputerId="org.eclipse.jdt.launching.sourceLookup.javaSourcePathComputer">
     </launchConfigurationType>
   </extension>
+  <extension point="org.eclipse.debug.ui.launchConfigurationTypeImages">
+    <launchConfigurationTypeImage
+      id="org.robovm.eclipse.ConsoleLaunchConfigurationTypeImage"
+      icon="icons/robovm_console_launcher.png"
+      configTypeID="org.robovm.eclipse.ConsoleLaunchConfigurationType">
+    </launchConfigurationTypeImage>
+    <launchConfigurationTypeImage
+      id="org.robovm.eclipse.ConsoleJUnitLaunchConfigurationTypeImage"
+      icon="icons/robovm_console_junit_launcher.png"
+      configTypeID="org.robovm.eclipse.ConsoleJUnitLaunchConfigurationType">
+    </launchConfigurationTypeImage>
+    <launchConfigurationTypeImage
+      id="org.robovm.eclipse.IOSSimulatorLaunchConfigurationTypeImage"
+      icon="icons/robovm_simulator_launcher.png"
+      configTypeID="org.robovm.eclipse.IOSSimulatorLaunchConfigurationType">
+    </launchConfigurationTypeImage>
+    <launchConfigurationTypeImage
+      id="org.robovm.eclipse.IOSSimulatorJUnitLaunchConfigurationTypeImage"
+      icon="icons/robovm_simulator_junit_launcher.png"
+      configTypeID="org.robovm.eclipse.IOSSimulatorJUnitLaunchConfigurationType">
+    </launchConfigurationTypeImage>
+    <launchConfigurationTypeImage
+      id="org.robovm.eclipse.IOSDeviceLaunchConfigurationTypeImage"
+      icon="icons/robovm_device_launcher.png"
+      configTypeID="org.robovm.eclipse.IOSDeviceLaunchConfigurationType">
+    </launchConfigurationTypeImage>
+  </extension>
   <extension point="org.eclipse.debug.ui.launchConfigurationTabGroups">
     <launchConfigurationTabGroup
         class="org.robovm.eclipse.internal.ConsoleLaunchConfigurationTabGroup"
@@ -162,6 +189,7 @@
     <shortcut
         class="org.robovm.eclipse.internal.ConsoleLaunchShortcut"
         id="org.robovm.eclipse.ConsoleLaunchShortcut"
+        icon="icons/robovm_console_launcher.png"
         label="Console Application"
         modes="run, debug">
       <contextualLaunch>
@@ -188,6 +216,7 @@
     <shortcut
         class="org.robovm.eclipse.internal.junit.ConsoleJUnitLaunchShortcut"
         id="org.robovm.eclipse.ConsoleJUnitLaunchShortcut"
+        icon="icons/robovm_console_junit_launcher.png"
         label="Console JUnit Test"
         modes="run, debug">
       <contextualLaunch>
@@ -208,6 +237,7 @@
     <shortcut
         class="org.robovm.eclipse.internal.IPhoneSimulatorLaunchShortcut"
         id="org.robovm.eclipse.IPhoneSimulatorLaunchShortcut"
+        icon="icons/robovm_simulator_launcher.png"
         label="iOS Simulator App (iPhone)"
         modes="run, debug">
       <contextualLaunch>
@@ -231,6 +261,7 @@
     <shortcut
         class="org.robovm.eclipse.internal.IPadSimulatorLaunchShortcut"
         id="org.robovm.eclipse.IPadSimulatorLaunchShortcut"
+        icon="icons/robovm_simulator_launcher.png"
         label="iOS Simulator App (iPad)"
         modes="run, debug">
       <contextualLaunch>
@@ -254,6 +285,7 @@
     <shortcut
         class="org.robovm.eclipse.internal.junit.IOSSimulatorJUnitLaunchShortcut"
         id="org.robovm.eclipse.IOSSimulatorJUnitLaunchShortcut"
+        icon="icons/robovm_simulator_junit_launcher.png"
         label="iOS Simulator JUnit Test"
         modes="run, debug">
       <contextualLaunch>
@@ -275,6 +307,7 @@
     <shortcut
         class="org.robovm.eclipse.internal.IOSDeviceLaunchShortcut"
         id="org.robovm.eclipse.IOSDeviceLaunchShortcut"
+        icon="icons/robovm_device_launcher.png"
         label="iOS Device App"
         modes="run, debug">
       <contextualLaunch>

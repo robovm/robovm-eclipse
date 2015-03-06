@@ -54,11 +54,11 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 
     protected RoboVMPageOne page1;
     protected NewJavaProjectWizardPageTwo page2;
-    
+
     public NewProjectWizard() {
         setWindowTitle("New RoboVM Console Project");
     }
-    
+
     @Override
     public void addPages() {
         if (page1 == null) {
@@ -68,35 +68,46 @@ public class NewProjectWizard extends Wizard implements INewWizard {
         }
         addPage(page1);
         if (page2 == null) {
-            page2 = new NewJavaProjectWizardPageTwo(page1);
+            page2 = createPageTwo(page1);
         }
         addPage(page2);
     }
-    
+
+    @Override
     public void init(IWorkbench workbench, IStructuredSelection selection) {
         setHelpAvailable(false);
     }
 
     protected RoboVMPageOne createPageOne() {
-        return new RoboVMPageOne(getDefaultArch(), getDefaultOs());
+        RoboVMPageOne page = new RoboVMPageOne(getDefaultArch(), getDefaultOs());
+        page.setImageDescriptor(RoboVMPlugin.getDefault().getImageRegistry()
+                .getDescriptor(RoboVMPlugin.IMAGE_NEW_CONSOLE_PROJECT_BANNER));
+        return page;
     }
-    
+
+    protected NewJavaProjectWizardPageTwo createPageTwo(NewJavaProjectWizardPageOne mainPage) {
+        NewJavaProjectWizardPageTwo page = new NewJavaProjectWizardPageTwo(mainPage);
+        page.setImageDescriptor(RoboVMPlugin.getDefault().getImageRegistry()
+                .getDescriptor(RoboVMPlugin.IMAGE_NEW_CONSOLE_PROJECT_BANNER));
+        return page;
+    }
+
     protected String getDefaultArch() {
         return RoboVMPlugin.ARCH_AUTO;
     }
-    
+
     protected String getDefaultOs() {
         return RoboVMPlugin.OS_AUTO;
     }
-    
+
     protected List<IClasspathEntry> customizeClasspath(List<IClasspathEntry> classpath) {
         return classpath;
     }
-    
+
     protected void customizeConfig(Config.Builder configBuilder, Properties props) throws Exception {
-        
+
     }
-    
+
     @Override
     public boolean performFinish() {
         try {
@@ -109,7 +120,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
             for (IClasspathEntry entry : oldClasspath) {
                 if (entry.getEntryKind() == IClasspathEntry.CPE_CONTAINER
                         && entry.getPath().toString().equals("org.eclipse.jdt.launching.JRE_CONTAINER")) {
-                    
+
                     newClasspath.add(JavaCore.newContainerEntry(new Path(RoboVMClasspathContainer.ID)));
                 } else {
                     newClasspath.add(entry);
@@ -117,7 +128,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
             }
             newClasspath = customizeClasspath(newClasspath);
             javaProject.setRawClasspath(newClasspath.toArray(
-                    new IClasspathEntry[newClasspath.size()]), 
+                    new IClasspathEntry[newClasspath.size()]),
                     new NullProgressMonitor());
             RoboVMNature.configureNatures(project, new NullProgressMonitor());
 
@@ -130,7 +141,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
                 Config.Builder configBuilder = new Config.Builder();
                 customizeConfig(configBuilder, props);
                 configBuilder.write(configFile);
-                
+
                 Writer writer = null;
                 try {
                     writer = new OutputStreamWriter(new FileOutputStream(propsFile));
@@ -138,10 +149,10 @@ public class NewProjectWizard extends Wizard implements INewWizard {
                 } finally {
                     IOUtils.closeQuietly(writer);
                 }
-                
+
                 project.refreshLocal(IResource.DEPTH_ONE, null);
             }
-            
+
         } catch (Exception e) {
             RoboVMPlugin.log(e);
             return false;
@@ -150,28 +161,30 @@ public class NewProjectWizard extends Wizard implements INewWizard {
         action.run();
         return true;
     }
-    
+
     public static class RoboVMPageOne extends NewJavaProjectWizardPageOne {
-        
+
         private final String defaultArch;
         private final String defaultOs;
         private ProjectProperties projectProperties = null;
-        
+
         public RoboVMPageOne(String defaultArch, String defaultOs) {
             this.defaultArch = defaultArch;
             this.defaultOs = defaultOs;
         }
-        
+
         @Override
         public String getCompilerCompliance() {
             return JavaCore.VERSION_1_7;
         }
+
         @Override
         public IClasspathEntry[] getDefaultClasspathEntries() {
             return new IClasspathEntry[] {
                 JavaCore.newContainerEntry(new Path(RoboVMClasspathContainer.ID))
             };
         }
+
         @Override
         protected Control createJRESelectionControl(Composite composite) {
             // Hide the JRE selection control
@@ -179,17 +192,19 @@ public class NewProjectWizard extends Wizard implements INewWizard {
             l.setSize(1, 1);
             return l;
         }
+
         @Override
         protected Control createInfoControl(Composite composite) {
             addCustomControls(composite);
             return super.createInfoControl(composite);
         }
+
         protected void addCustomControls(Composite parent) {
             projectProperties = new ProjectProperties(parent, true);
             projectProperties.setArch(defaultArch);
             projectProperties.setOs(defaultOs);
         }
-        
+
         public void storePreferences(IProject project) throws BackingStoreException {
             projectProperties.storePreferences(project);
         }

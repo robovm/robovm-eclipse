@@ -25,6 +25,8 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.ui.wizards.NewJavaProjectWizardPageOne;
+import org.eclipse.jdt.ui.wizards.NewJavaProjectWizardPageTwo;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.resource.JFaceResources;
@@ -42,6 +44,7 @@ import org.robovm.compiler.config.Config.Builder;
 import org.robovm.compiler.config.Config.TargetType;
 import org.robovm.compiler.config.OS;
 import org.robovm.compiler.config.Resource;
+import org.robovm.eclipse.RoboVMPlugin;
 
 /**
  * 
@@ -52,38 +55,49 @@ public class NewCocoaTouchProjectWizard extends NewProjectWizard {
         super();
         setWindowTitle("New RoboVM iOS Project");
     }
-    
+
     @Override
     protected RoboVMPageOne createPageOne() {
-        return new IOSPageOne(getDefaultArch(), getDefaultOs());
+        RoboVMPageOne page = new IOSPageOne(getDefaultArch(), getDefaultOs());
+        page.setImageDescriptor(RoboVMPlugin.getDefault().getImageRegistry()
+                .getDescriptor(RoboVMPlugin.IMAGE_NEW_IOS_PROJECT_BANNER));
+        return page;
     }
-    
+
+    @Override
+    protected NewJavaProjectWizardPageTwo createPageTwo(NewJavaProjectWizardPageOne mainPage) {
+        NewJavaProjectWizardPageTwo page = super.createPageTwo(mainPage);
+        page.setImageDescriptor(RoboVMPlugin.getDefault().getImageRegistry()
+                .getDescriptor(RoboVMPlugin.IMAGE_NEW_IOS_PROJECT_BANNER));
+        return page;
+    }
+
     @Override
     protected String getDefaultArch() {
         return Arch.x86.toString();
     }
-    
+
     @Override
     protected String getDefaultOs() {
         return OS.ios.toString();
     }
-    
+
     @Override
     protected List<IClasspathEntry> customizeClasspath(List<IClasspathEntry> classpath) {
         classpath.add(JavaCore.newContainerEntry(new Path(RoboVMCocoaTouchClasspathContainer.ID)));
         return super.customizeClasspath(classpath);
     }
-    
+
     @Override
     protected void customizeConfig(Builder configBuilder, Properties props) throws Exception {
         super.customizeConfig(configBuilder, props);
-        
+
         IProject project = page2.getJavaProject().getProject();
-        
+
         String mainClass = ((IOSPageOne) page1).mainClassText.getText().trim();
         String appName = ((IOSPageOne) page1).appNameText.getText().trim();
         String appId = ((IOSPageOne) page1).appIdText.getText().trim();
-        
+
         if (mainClass.length() == 0) {
             mainClass = project.getName().replaceAll("\\s", "");
         }
@@ -94,20 +108,20 @@ public class NewCocoaTouchProjectWizard extends NewProjectWizard {
         if (appId.length() == 0) {
             appId = mainClass;
         }
-        
+
         props.setProperty("app.mainclass", mainClass);
         props.setProperty("app.name", appName);
         props.setProperty("app.executable", mainClassSimpleName);
         props.setProperty("app.id", appId);
         props.setProperty("app.version", "1.0");
         props.setProperty("app.build", "1");
-        
+
         File projectRoot = project.getLocation().toFile();
         File infoPList = new File(projectRoot, "Info.plist.xml");
         FileUtils.copyURLToFile(getClass().getResource("Info.plist.template.xml"), infoPList);
         File resources = new File(projectRoot, "resources");
         resources.mkdirs();
-        
+
         configBuilder.os(OS.ios);
         configBuilder.arch(Arch.thumbv7);
         configBuilder.targetType(TargetType.ios);
@@ -116,22 +130,22 @@ public class NewCocoaTouchProjectWizard extends NewProjectWizard {
         configBuilder.iosInfoPList(infoPList);
         configBuilder.addResource(new Resource(resources, null));
     }
-    
+
     public static class IOSPageOne extends RoboVMPageOne {
         private Text mainClassText;
         private Text appNameText;
         private Text appIdText;
-        
+
         public IOSPageOne(String defaultArch, String defaultOs) {
             super(defaultArch, defaultOs);
         }
-        
+
         @Override
         protected void addCustomControls(Composite parent) {
             super.addCustomControls(parent);
             createBundleControl(parent);
         }
-        
+
         protected void createBundleControl(Composite parent) {
             Group group = new Group(parent, SWT.NONE);
             group.setText("iOS App Settings:");
@@ -144,7 +158,8 @@ public class NewCocoaTouchProjectWizard extends NewProjectWizard {
             gc.setFont(JFaceResources.getDialogFont());
             FontMetrics fontMetrics = gc.getFontMetrics();
             gc.dispose();
-            layout.horizontalSpacing = Dialog.convertHorizontalDLUsToPixels(fontMetrics, IDialogConstants.HORIZONTAL_SPACING);
+            layout.horizontalSpacing = Dialog.convertHorizontalDLUsToPixels(fontMetrics,
+                    IDialogConstants.HORIZONTAL_SPACING);
             layout.verticalSpacing = Dialog.convertVerticalDLUsToPixels(fontMetrics, IDialogConstants.VERTICAL_SPACING);
             layout.marginWidth = Dialog.convertHorizontalDLUsToPixels(fontMetrics, IDialogConstants.HORIZONTAL_MARGIN);
             layout.marginHeight = Dialog.convertVerticalDLUsToPixels(fontMetrics, IDialogConstants.VERTICAL_MARGIN);
@@ -157,7 +172,7 @@ public class NewCocoaTouchProjectWizard extends NewProjectWizard {
             mainClassText = new Text(group, SWT.SINGLE | SWT.BORDER);
             mainClassText.setFont(group.getFont());
             mainClassText.setLayoutData(new GridData(GridData.FILL, GridData.CENTER, true, false));
-            
+
             Label appNameLabel = new Label(group, NONE);
             appNameLabel.setFont(group.getFont());
             appNameLabel.setText("App name:");
@@ -166,7 +181,7 @@ public class NewCocoaTouchProjectWizard extends NewProjectWizard {
             appNameText = new Text(group, SWT.SINGLE | SWT.BORDER);
             appNameText.setFont(group.getFont());
             appNameText.setLayoutData(new GridData(GridData.FILL, GridData.CENTER, true, false));
-            
+
             Label appIdLabel = new Label(group, NONE);
             appIdLabel.setFont(group.getFont());
             appIdLabel.setText("App id:");

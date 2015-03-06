@@ -45,8 +45,10 @@ import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.preferences.DefaultScope;
@@ -57,6 +59,8 @@ import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
@@ -72,6 +76,7 @@ import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.robovm.compiler.Version;
 import org.robovm.compiler.config.Arch;
@@ -96,25 +101,27 @@ public class RoboVMPlugin extends AbstractUIPlugin {
     public static final String LAUNCH_OS = PLUGIN_ID + ".launch.os";
     public static final String ARCH_AUTO = "auto";
     public static final String OS_AUTO = "auto";
+    public static final String IMAGE_NEW_CONSOLE_PROJECT_BANNER = PLUGIN_ID + ".image.newConsoleProjectBanner";
+    public static final String IMAGE_NEW_IOS_PROJECT_BANNER = PLUGIN_ID + ".image.newIOSProjectBanner";
 
-    public static final Arch[] ALL_ARCH_VALUES = new Arch[] {Arch.thumbv7, Arch.arm64, Arch.x86, Arch.x86_64};
-    public static final String[] ALL_ARCH_NAMES = 
+    public static final Arch[] ALL_ARCH_VALUES = new Arch[] { Arch.thumbv7, Arch.arm64, Arch.x86, Arch.x86_64 };
+    public static final String[] ALL_ARCH_NAMES =
             new String[] {
-                "32-bit ARM (" + Arch.thumbv7 + ")", 
-                "64-bit ARM (" + Arch.arm64 + ")", 
-                "32-bit x86 (" + Arch.x86 + ")", 
-                "64-bit x86 (" + Arch.x86_64 + ")"};
-    public static final Arch[] IOS_DEVICE_ARCH_VALUES = new Arch[] {Arch.thumbv7, Arch.arm64};
-    public static final String[] IOS_DEVICE_ARCH_NAMES = 
+                "32-bit ARM (" + Arch.thumbv7 + ")",
+                "64-bit ARM (" + Arch.arm64 + ")",
+                "32-bit x86 (" + Arch.x86 + ")",
+                "64-bit x86 (" + Arch.x86_64 + ")" };
+    public static final Arch[] IOS_DEVICE_ARCH_VALUES = new Arch[] { Arch.thumbv7, Arch.arm64 };
+    public static final String[] IOS_DEVICE_ARCH_NAMES =
             new String[] {
-                "32-bit (" + Arch.thumbv7 + ")", 
-                "64-bit (" + Arch.arm64 + ")"};
-    public static final Arch[] IOS_SIM_ARCH_VALUES = new Arch[] {Arch.x86, Arch.x86_64};
-    public static final String[] IOS_SIM_ARCH_NAMES = 
+                "32-bit (" + Arch.thumbv7 + ")",
+                "64-bit (" + Arch.arm64 + ")" };
+    public static final Arch[] IOS_SIM_ARCH_VALUES = new Arch[] { Arch.x86, Arch.x86_64 };
+    public static final String[] IOS_SIM_ARCH_NAMES =
             new String[] {
-                "32-bit (" + Arch.x86 + ")", 
-                "64-bit (" + Arch.x86_64 + ")"};
-    
+                "32-bit (" + Arch.x86 + ")",
+                "64-bit (" + Arch.x86_64 + ")" };
+
     private static RoboVMPlugin plugin;
     private static IPreferenceStore pluginPreferencesStore;
     private static Config.Home roboVMHome = null;
@@ -160,6 +167,7 @@ public class RoboVMPlugin extends AbstractUIPlugin {
         }
     }
 
+    @Override
     public void start(BundleContext context) throws Exception {
         super.start(context);
         plugin = this;
@@ -179,6 +187,7 @@ public class RoboVMPlugin extends AbstractUIPlugin {
         errorStream = console.newMessageStream();
         final Color errorColor = new Color(display, 0xFF, 0x00, 0x00);
         display.asyncExec(new Runnable() {
+            @Override
             public void run() {
                 debugStream.setColor(debugColor);
                 infoStream.setColor(infoColor);
@@ -188,6 +197,7 @@ public class RoboVMPlugin extends AbstractUIPlugin {
         });
     }
 
+    @Override
     public void stop(BundleContext context) throws Exception {
         super.stop(context);
 
@@ -212,7 +222,7 @@ public class RoboVMPlugin extends AbstractUIPlugin {
     public static IPreferenceStore getPluginPreferenceStore() {
         return pluginPreferencesStore;
     }
-    
+
     public static synchronized Display getDisplay() {
         if (plugin != null) {
             IWorkbench workbench = plugin.getWorkbench();
@@ -496,5 +506,23 @@ public class RoboVMPlugin extends AbstractUIPlugin {
         } catch (PartInitException partEx) {
         }
         ConsolePlugin.getDefault().getConsoleManager().showConsoleView(plugin.console);
+    }
+
+    @Override
+    protected void initializeImageRegistry(ImageRegistry reg) {
+        super.initializeImageRegistry(reg);
+
+        Bundle bundle = plugin.getBundle();
+
+        reg.put(IMAGE_NEW_CONSOLE_PROJECT_BANNER,
+                getImageDescriptorFromPath(bundle, "icons/new_robovm_console_project_banner.png"));
+        reg.put(IMAGE_NEW_IOS_PROJECT_BANNER,
+                getImageDescriptorFromPath(bundle, "icons/new_robovm_ios_project_banner.png"));
+    }
+
+    private static ImageDescriptor getImageDescriptorFromPath(Bundle bundle, String pathString) {
+        IPath path = new Path(pathString);
+        URL url = FileLocator.find(bundle, path, null);
+        return ImageDescriptor.createFromURL(url);
     }
 }
