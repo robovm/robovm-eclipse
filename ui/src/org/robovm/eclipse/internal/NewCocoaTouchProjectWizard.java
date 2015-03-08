@@ -16,11 +16,8 @@
  */
 package org.robovm.eclipse.internal;
 
-import java.io.File;
 import java.util.List;
-import java.util.Properties;
 
-import org.apache.commons.io.FileUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IClasspathEntry;
@@ -40,11 +37,9 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.robovm.compiler.config.Arch;
-import org.robovm.compiler.config.Config.Builder;
-import org.robovm.compiler.config.Config.TargetType;
 import org.robovm.compiler.config.OS;
-import org.robovm.compiler.config.Resource;
 import org.robovm.eclipse.RoboVMPlugin;
+import org.robovm.templater.Templater;
 
 /**
  * 
@@ -89,8 +84,8 @@ public class NewCocoaTouchProjectWizard extends NewProjectWizard {
     }
 
     @Override
-    protected void customizeConfig(Builder configBuilder, Properties props) throws Exception {
-        super.customizeConfig(configBuilder, props);
+    protected void customizeTemplate(Templater templater) throws Exception {
+        super.customizeTemplate(templater);
 
         IProject project = page2.getJavaProject().getProject();
 
@@ -100,35 +95,14 @@ public class NewCocoaTouchProjectWizard extends NewProjectWizard {
 
         if (mainClass.length() == 0) {
             mainClass = project.getName().replaceAll("\\s", "");
-        }
-        String mainClassSimpleName = mainClass.substring(mainClass.lastIndexOf('.') + 1);;
-        if (appName.length() == 0) {
-            appName = mainClassSimpleName;
-        }
-        if (appId.length() == 0) {
-            appId = mainClass;
+            if (mainClass.lastIndexOf('.') == -1) {
+                mainClass = "org.robovm.app." + Character.toUpperCase(mainClass.charAt(0)) + mainClass.substring(1);
+            }
         }
 
-        props.setProperty("app.mainclass", mainClass);
-        props.setProperty("app.name", appName);
-        props.setProperty("app.executable", mainClassSimpleName);
-        props.setProperty("app.id", appId);
-        props.setProperty("app.version", "1.0");
-        props.setProperty("app.build", "1");
-
-        File projectRoot = project.getLocation().toFile();
-        File infoPList = new File(projectRoot, "Info.plist.xml");
-        FileUtils.copyURLToFile(getClass().getResource("Info.plist.template.xml"), infoPList);
-        File resources = new File(projectRoot, "resources");
-        resources.mkdirs();
-
-        configBuilder.os(OS.ios);
-        configBuilder.arch(Arch.thumbv7);
-        configBuilder.targetType(TargetType.ios);
-        configBuilder.mainClass("${app.mainclass}");
-        configBuilder.executableName("${app.executable}");
-        configBuilder.iosInfoPList(infoPList);
-        configBuilder.addResource(new Resource(resources, null));
+        templater.mainClass(mainClass);
+        templater.appName(appName);
+        templater.appId(appId);
     }
 
     public static class IOSPageOne extends RoboVMPageOne {
