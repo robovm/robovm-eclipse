@@ -31,6 +31,11 @@
         <classifier>nocompiler</classifier>
         <type>tar.gz</type>
       </dependency>
+      <dependency>
+        <groupId>org.robovm</groupId>
+        <artifactId>robovm-templater</artifactId>
+        <version>${robovm.version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -79,6 +84,10 @@
               <artifactId>robovm-dist</artifactId>
               <classifier>nocompiler</classifier>
               <type>tar.gz</type>
+            </artifactItem>
+            <artifactItem>
+              <groupId>org.robovm</groupId>
+              <artifactId>robovm-templater</artifactId>
             </artifactItem>
           </artifactItems>
         </configuration>

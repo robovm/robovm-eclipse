@@ -17,14 +17,9 @@
 package org.robovm.eclipse.internal;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
-import org.apache.commons.io.IOUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -43,8 +38,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 import org.osgi.service.prefs.BackingStoreException;
-import org.robovm.compiler.config.Config;
 import org.robovm.eclipse.RoboVMPlugin;
+import org.robovm.templater.Templater;
 
 /**
  *
@@ -104,7 +99,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
         return classpath;
     }
 
-    protected void customizeConfig(Config.Builder configBuilder, Properties props) throws Exception {
+    protected void customizeTemplate(Templater templater) throws Exception {
 
     }
 
@@ -114,14 +109,27 @@ public class NewProjectWizard extends Wizard implements INewWizard {
             page2.performFinish(new NullProgressMonitor());
             IJavaProject javaProject = page2.getJavaProject();
             IProject project = javaProject.getProject();
+
+            // TODO create selection screen for the template type
+            Templater templater = new Templater("default");
+            File projectRoot = project.getLocation().toFile();
+            customizeTemplate(templater);
+            templater.buildProject(projectRoot);
+
             page1.storePreferences(project);
             IClasspathEntry[] oldClasspath = javaProject.getRawClasspath();
             List<IClasspathEntry> newClasspath = new ArrayList<IClasspathEntry>();
+
+            String rootSrc = javaProject.getPath().append("src").toString();
+
             for (IClasspathEntry entry : oldClasspath) {
                 if (entry.getEntryKind() == IClasspathEntry.CPE_CONTAINER
                         && entry.getPath().toString().equals("org.eclipse.jdt.launching.JRE_CONTAINER")) {
 
                     newClasspath.add(JavaCore.newContainerEntry(new Path(RoboVMClasspathContainer.ID)));
+                } else if (entry.getPath().toString().startsWith(rootSrc)) {
+                    // Cannot have nested classpath entries.
+                    newClasspath.add(JavaCore.newSourceEntry(javaProject.getPath().append("src/main/java")));
                 } else {
                     newClasspath.add(entry);
                 }
@@ -132,33 +140,14 @@ public class NewProjectWizard extends Wizard implements INewWizard {
                     new NullProgressMonitor());
             RoboVMNature.configureNatures(project, new NullProgressMonitor());
 
-            File projectRoot = project.getLocation().toFile();
-            File propsFile = new File(projectRoot, "robovm.properties");
-            File configFile = new File(projectRoot, "robovm.xml");
-
-            if (!propsFile.exists() && !configFile.exists()) {
-                Properties props = new Properties();
-                Config.Builder configBuilder = new Config.Builder();
-                customizeConfig(configBuilder, props);
-                configBuilder.write(configFile);
-
-                Writer writer = null;
-                try {
-                    writer = new OutputStreamWriter(new FileOutputStream(propsFile));
-                    props.store(writer, "");
-                } finally {
-                    IOUtils.closeQuietly(writer);
-                }
-
-                project.refreshLocal(IResource.DEPTH_ONE, null);
-            }
-
+            project.refreshLocal(IResource.DEPTH_ONE, null);
         } catch (Exception e) {
             RoboVMPlugin.log(e);
             return false;
         }
         OpenJavaPerspectiveAction action = new OpenJavaPerspectiveAction();
         action.run();
+
         return true;
     }
 
@@ -182,6 +171,14 @@ public class NewProjectWizard extends Wizard implements INewWizard {
         public IClasspathEntry[] getDefaultClasspathEntries() {
             return new IClasspathEntry[] {
                 JavaCore.newContainerEntry(new Path(RoboVMClasspathContainer.ID))
+            };
+        }
+
+        @Override
+        public IClasspathEntry[] getSourceClasspathEntries() {
+            IClasspathEntry defaultEntry = super.getSourceClasspathEntries()[0];
+            return new IClasspathEntry[] {
+                JavaCore.newSourceEntry(defaultEntry.getPath().append("main/java"))
             };
         }
 
