@@ -96,7 +96,7 @@ public class NewCocoaTouchProjectWizard extends NewProjectWizard {
         if (mainClass.length() == 0) {
             mainClass = project.getName().replaceAll("\\s", "");
             if (mainClass.lastIndexOf('.') == -1) {
-                mainClass = "org.robovm.app." + Character.toUpperCase(mainClass.charAt(0)) + mainClass.substring(1);
+                mainClass = Character.toUpperCase(mainClass.charAt(0)) + mainClass.substring(1);
             }
         }
 
