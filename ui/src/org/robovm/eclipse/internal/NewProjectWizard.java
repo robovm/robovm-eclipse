@@ -153,7 +153,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
                     new NullProgressMonitor());
             RoboVMNature.configureNatures(project, new NullProgressMonitor());
 
-            project.refreshLocal(IResource.DEPTH_ONE, null);
+            project.refreshLocal(IResource.DEPTH_INFINITE, null);
         } catch (Exception e) {
             RoboVMPlugin.log(e);
             return false;
