@@ -32,6 +32,12 @@ import org.eclipse.jdt.ui.wizards.NewJavaProjectWizardPageOne;
 import org.eclipse.jdt.ui.wizards.NewJavaProjectWizardPageTwo;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.ControlAdapter;
+import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
@@ -173,6 +179,25 @@ public class NewProjectWizard extends Wizard implements INewWizard {
         public RoboVMPageOne(String defaultArch, String defaultOs) {
             this.defaultArch = defaultArch;
             this.defaultOs = defaultOs;
+        }
+
+        @Override
+        public void createControl(Composite parent) {
+            // Wrap the contents in a ScrolledComposite to make it accessible even on small screens
+            final ScrolledComposite sc = new ScrolledComposite(parent, SWT.V_SCROLL | SWT.H_SCROLL);
+            sc.setExpandVertical(true);
+            sc.setExpandHorizontal(true);
+            final Composite composite = new Composite(sc, SWT.NONE);
+            composite.setLayout(new GridLayout(1, true));
+            sc.setContent(composite);
+            sc.addControlListener(new ControlAdapter() {
+                public void controlResized(ControlEvent e) {
+                    Rectangle r = sc.getClientArea();
+                    sc.setMinSize(composite.computeSize(r.width,
+                            SWT.DEFAULT));
+                }
+            });
+            super.createControl(composite);
         }
 
         @Override
