@@ -85,8 +85,6 @@ public class NewCocoaTouchProjectWizard extends NewProjectWizard {
 
     @Override
     protected void customizeTemplate(Templater templater) throws Exception {
-        super.customizeTemplate(templater);
-
         IProject project = page2.getJavaProject().getProject();
 
         String mainClass = ((IOSPageOne) page1).mainClassText.getText().trim();

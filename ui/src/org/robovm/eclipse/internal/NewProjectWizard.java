@@ -100,7 +100,19 @@ public class NewProjectWizard extends Wizard implements INewWizard {
     }
 
     protected void customizeTemplate(Templater templater) throws Exception {
-
+        IJavaProject javaProject = page2.getJavaProject();
+        IProject project = javaProject.getProject(); 
+        templater.mainClass("Main");
+        templater.appName(project.getName());
+        templater.appId(project.getName());
+    }
+    
+    protected String getTemplateName() {
+        if(this instanceof NewCocoaTouchProjectWizard) {
+            return "default";
+        } else {
+            return "console";
+        }
     }
 
     @Override
@@ -108,10 +120,11 @@ public class NewProjectWizard extends Wizard implements INewWizard {
         try {
             page2.performFinish(new NullProgressMonitor());
             IJavaProject javaProject = page2.getJavaProject();
-            IProject project = javaProject.getProject();
+            IProject project = javaProject.getProject();            
 
             // TODO create selection screen for the template type
-            Templater templater = new Templater("default");
+            String templateName = getTemplateName();
+            Templater templater = new Templater(templateName);
             File projectRoot = project.getLocation().toFile();
             customizeTemplate(templater);
             templater.buildProject(projectRoot);
