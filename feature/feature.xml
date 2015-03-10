@@ -2,7 +2,7 @@
 <feature
       id="org.robovm.eclipse.feature"
       label="RoboVM for Eclipse"
-      version="1.0.0.201503101143"
+      version="1.0.1.qualifier"
       provider-name="Trillian Mobile AB">
 
    <description url="http://www.robovm.com">
