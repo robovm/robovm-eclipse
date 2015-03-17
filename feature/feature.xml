@@ -3,14 +3,14 @@
       id="org.robovm.eclipse.feature"
       label="RoboVM for Eclipse"
       version="1.0.1.qualifier"
-      provider-name="Trillian Mobile AB">
+      provider-name="RoboVM AB">
 
    <description url="http://www.robovm.com">
       The RoboVM for Eclipse plug-in makes it possible to build RoboVM projects from within the Eclipse IDE.
    </description>
 
    <copyright>
-      Copyright (C) 2012-2014 Trillian Mobile AB. All rights reserved.
+      Copyright (C) 2012-2014 RoboVM AB. All rights reserved.
    </copyright>
 
    <license url="%licenseURL">
