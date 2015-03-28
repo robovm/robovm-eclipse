@@ -24,4 +24,3 @@ Bundle-ClassPath: .,
  lib/commons-compress.jar,
  lib/robovm-dist-compiler.jar,
  lib/robovm-templater.jar
-Export-Package: com.robovm.lm
