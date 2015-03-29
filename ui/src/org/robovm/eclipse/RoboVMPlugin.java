@@ -28,7 +28,9 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
@@ -82,7 +84,11 @@ import org.robovm.compiler.Version;
 import org.robovm.compiler.config.Arch;
 import org.robovm.compiler.config.Config;
 import org.robovm.compiler.config.OS;
+import org.robovm.compiler.config.Resource;
 import org.robovm.compiler.log.Logger;
+import org.robovm.eclipse.internal.RoboVMCocoaTouchClasspathContainer;
+import org.robovm.eclipse.internal.RoboVMNature;
+import org.robovm.eclipse.internal.ib.IBIntegratorManager;
 
 /**
  *
@@ -103,6 +109,7 @@ public class RoboVMPlugin extends AbstractUIPlugin {
     public static final String OS_AUTO = "auto";
     public static final String IMAGE_NEW_CONSOLE_PROJECT_BANNER = PLUGIN_ID + ".image.newConsoleProjectBanner";
     public static final String IMAGE_NEW_IOS_PROJECT_BANNER = PLUGIN_ID + ".image.newIOSProjectBanner";
+    public static final String IMAGE_NEW_IOS_STORYBOARD_BANNER = PLUGIN_ID + ".image.newIOSStoryboardBanner";
 
     public static final Arch[] ALL_ARCH_VALUES = new Arch[] { Arch.thumbv7, Arch.arm64, Arch.x86, Arch.x86_64 };
     public static final String[] ALL_ARCH_NAMES =
@@ -195,6 +202,8 @@ public class RoboVMPlugin extends AbstractUIPlugin {
                 errorStream.setColor(errorColor);
             }
         });
+        
+        IBIntegratorManager.getInstance().start();
     }
 
     @Override
@@ -310,6 +319,50 @@ public class RoboVMPlugin extends AbstractUIPlugin {
             }
         } finally {
             IOUtils.closeQuietly(in);
+        }
+    }
+
+    public static boolean isRoboVMProject(IProject project) throws CoreException {
+        if (project.getNature(RoboVMNature.ID) == null) {
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean isRoboVMIOSProject(IProject project) throws CoreException {
+        if (!isRoboVMProject(project)) {
+            return false;
+        }
+        IJavaProject javaProject = JavaCore.create(project);
+        for (IClasspathEntry entry : javaProject.getRawClasspath()) {
+            if (entry.getEntryKind() == IClasspathEntry.CPE_CONTAINER
+                    && entry.getPath().toString().equals(RoboVMCocoaTouchClasspathContainer.ID)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static Collection<File> getRoboVMProjectResourcePaths(IProject project) {
+        try {
+            File projectRoot = project.getLocation().toFile();
+            Config.Builder configBuilder = new Config.Builder();
+            configBuilder.home(RoboVMPlugin.getRoboVMHome());
+            configBuilder.addClasspathEntry(new File(".")); // Fake a classpath to make Config happy
+            configBuilder.skipLinking(true);
+            RoboVMPlugin.loadConfig(configBuilder, projectRoot, false);
+            Config config = configBuilder.build();
+            Set<File> paths = new HashSet<>();
+            for (Resource r : config.getResources()) {
+                if (r.getPath() != null) {
+                    paths.add(r.getPath());
+                } else if (r.getDirectory() != null) {
+                    paths.add(r.getDirectory());
+                }
+            }
+            return paths;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -518,6 +571,8 @@ public class RoboVMPlugin extends AbstractUIPlugin {
                 getImageDescriptorFromPath(bundle, "icons/new_robovm_console_project_banner.png"));
         reg.put(IMAGE_NEW_IOS_PROJECT_BANNER,
                 getImageDescriptorFromPath(bundle, "icons/new_robovm_ios_project_banner.png"));
+        reg.put(IMAGE_NEW_IOS_STORYBOARD_BANNER,
+                getImageDescriptorFromPath(bundle, "icons/new_robovm_ios_storyboard_banner.png"));
     }
 
     private static ImageDescriptor getImageDescriptorFromPath(Bundle bundle, String pathString) {

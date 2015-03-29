@@ -29,6 +29,20 @@
       preferredPerspectives="org.eclipse.jdt.ui.JavaPerspective"
       project="true"/>
   </extension>
+  <extension point="org.eclipse.ui.newWizards">
+    <category id="org.robovm.eclipse.wizards.category" name="RoboVM"/>
+    <wizard
+      canFinishEarly="false"
+      category="org.robovm.eclipse.wizards.category"
+      class="org.robovm.eclipse.internal.ib.NewStoryboardWizard"
+      finalPerspective="org.eclipse.jdt.ui.JavaPerspective"
+      hasPages="true"
+      icon="icons/new_robovm_ios_storyboard.png"
+      id="org.robovm.eclipse.NewStoryboardWizard"
+      name="iOS Storyboard"
+      preferredPerspectives="org.eclipse.jdt.ui.JavaPerspective"
+      project="false"/>
+  </extension>
   <extension point="org.eclipse.ui.perspectiveExtensions">
     <perspectiveExtension targetID="org.eclipse.jdt.ui.JavaPerspective">
       <newWizardShortcut id="org.robovm.eclipse.NewProjectWizard" />
