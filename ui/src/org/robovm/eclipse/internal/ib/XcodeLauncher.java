@@ -36,7 +36,7 @@ public class XcodeLauncher implements IEditorLauncher {
         IResource resource = root.findMember(file);
         IBIntegratorProxy ib = IBIntegratorManager.getInstance().getIBIntegrator(resource.getProject());
         if (ib != null) {
-            ib.openProjectFile(resource.getName());
+            ib.openProjectFile(resource.getLocation().toFile().getAbsolutePath());
         }
     }
 
