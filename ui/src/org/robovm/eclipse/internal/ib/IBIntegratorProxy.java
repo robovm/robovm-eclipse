@@ -18,6 +18,7 @@ package org.robovm.eclipse.internal.ib;
 
 import java.io.File;
 
+import org.robovm.compiler.config.Config.Home;
 import org.robovm.compiler.log.Logger;
 
 /**
@@ -39,10 +40,11 @@ public class IBIntegratorProxy {
         return ibintegratorClass;
     }
 
-    public IBIntegratorProxy(Logger logger, String projectName, File target) {
+    public IBIntegratorProxy(Home home, Logger logger, String projectName, File target) {
         try {
-            instance = getIBIntegratorClass().getConstructor(Logger.class, String.class, File.class).newInstance(
-                    logger, projectName, target);
+            instance = getIBIntegratorClass().getConstructor(Home.class, Logger.class, String.class, File.class)
+                    .newInstance(
+                            home, logger, projectName, target);
         } catch (Error | RuntimeException e) {
             throw e;
         } catch (Throwable t) {

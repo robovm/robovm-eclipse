@@ -17,6 +17,7 @@
 package org.robovm.eclipse.internal.ib;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -96,14 +97,18 @@ public class IBIntegratorManager implements IResourceChangeListener {
                 File dir = RoboVMPlugin.getBuildDir(name);
                 dir.mkdirs();
                 RoboVMPlugin.consoleDebug("Starting Interface Builder integrator daemon for project %s", name);
-                proxy = new IBIntegratorProxy(RoboVMPlugin.getConsoleLogger(), name, dir);
+                proxy = new IBIntegratorProxy(RoboVMPlugin.getRoboVMHome(), RoboVMPlugin.getConsoleLogger(), name, dir);
                 proxy.start();
                 daemons.put(name, proxy);
             } catch (RuntimeException e) {
                 if (e.getClass().getSimpleName().equals("UnlicensedException")) {
                     RoboVMPlugin.getConsoleLogger().warn("Failed to start Interface Builder "
                             + "integrator for project " + name + ": " + e.getMessage());
+                } else {
+                    throw e;
                 }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
         }
 

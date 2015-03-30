@@ -38,7 +38,7 @@
       finalPerspective="org.eclipse.jdt.ui.JavaPerspective"
       hasPages="true"
       icon="icons/new_robovm_ios_storyboard.png"
-      id="org.robovm.eclipse.NewStoryboardWizard"
+      id="org.robovm.eclipse.ib.NewStoryboardWizard"
       name="iOS Storyboard"
       preferredPerspectives="org.eclipse.jdt.ui.JavaPerspective"
       project="false"/>
@@ -418,5 +418,13 @@
               label="License Manager"/>
         </menu>
       </menuContribution>
+    </extension>
+    <extension point="org.eclipse.ui.editors">
+       <editor id="org.robovm.eclipse.ib.StoryboardEditor"
+               name="iOS Storyboard Editor"
+               icon="icons/ios_storyboard_file.png"
+               extensions="storyboard"
+               launcher="org.robovm.eclipse.internal.ib.XcodeLauncher">
+       </editor>
     </extension>
 </plugin>
