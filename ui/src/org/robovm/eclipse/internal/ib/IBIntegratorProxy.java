@@ -17,6 +17,8 @@
 package org.robovm.eclipse.internal.ib;
 
 import java.io.File;
+import java.util.List;
+import java.util.Set;
 
 import org.robovm.compiler.config.Config.Home;
 import org.robovm.compiler.log.Logger;
@@ -52,10 +54,9 @@ public class IBIntegratorProxy {
         }
     }
 
-    public void addResourceFolders(File... resourceFolders) {
+    public void setResourceFolders(Set<File> resourceFolders) {
         try {
-            getIBIntegratorClass().getMethod("addResourceFolders", File[].class).invoke(instance,
-                    new Object[] { resourceFolders });
+            getIBIntegratorClass().getMethod("setResourceFolders", Set.class).invoke(instance, resourceFolders);
         } catch (Error | RuntimeException e) {
             throw e;
         } catch (Throwable t) {
@@ -63,10 +64,19 @@ public class IBIntegratorProxy {
         }
     }
 
-    public void addSourceFolders(File... sourceFolders) {
+    public void setClasspath(List<File> classpath) {
         try {
-            getIBIntegratorClass().getMethod("addSourceFolders", File[].class).invoke(instance,
-                    new Object[] { sourceFolders });
+            getIBIntegratorClass().getMethod("setClasspath", List.class).invoke(instance, classpath);
+        } catch (Error | RuntimeException e) {
+            throw e;
+        } catch (Throwable t) {
+            throw new Error(t);
+        }
+    }
+
+    public void setSourceFolders(Set<File> sourceFolders) {
+        try {
+            getIBIntegratorClass().getMethod("setSourceFolders", Set.class).invoke(instance, sourceFolders);
         } catch (Error | RuntimeException e) {
             throw e;
         } catch (Throwable t) {

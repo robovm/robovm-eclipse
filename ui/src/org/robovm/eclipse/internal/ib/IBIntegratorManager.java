@@ -18,9 +18,10 @@ package org.robovm.eclipse.internal.ib;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -36,6 +37,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
 import org.robovm.eclipse.RoboVMPlugin;
 
 /**
@@ -113,9 +115,13 @@ public class IBIntegratorManager implements IResourceChangeListener {
         }
 
         if (proxy != null) {
-            Set<File> outputPaths = new HashSet<>();
             IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
             IJavaProject javaProject = JavaCore.create(project);
+
+            List<File> classpath = new ArrayList<>(resolveClasspath(root, javaProject));
+            proxy.setClasspath(classpath);
+
+            LinkedHashSet<File> outputPaths = new LinkedHashSet<>();
             if (javaProject.getOutputLocation() != null) {
                 outputPaths.add(root.findMember(javaProject.getOutputLocation()).getLocation().toFile());
             }
@@ -124,10 +130,42 @@ public class IBIntegratorManager implements IResourceChangeListener {
                     outputPaths.add(root.findMember(cpe.getOutputLocation()).getLocation().toFile());
                 }
             }
-            proxy.addSourceFolders(outputPaths.toArray(new File[outputPaths.size()]));
-            Collection<File> resourcePaths = RoboVMPlugin.getRoboVMProjectResourcePaths(project);
-            proxy.addResourceFolders(resourcePaths.toArray(new File[resourcePaths.size()]));
+            proxy.setSourceFolders(outputPaths);
+
+            Set<File> resourcePaths = RoboVMPlugin.getRoboVMProjectResourcePaths(project);
+            proxy.setResourceFolders(resourcePaths);
         }
+    }
+
+    private LinkedHashSet<File> resolveClasspath(IWorkspaceRoot root, IJavaProject javaProject) throws JavaModelException {
+        LinkedHashSet<File> classpath = new LinkedHashSet<>();
+        for (IClasspathEntry cpe : javaProject.getResolvedClasspath(true)) {
+            if (cpe.getEntryKind() == IClasspathEntry.CPE_PROJECT) {
+                IJavaProject jproj = JavaCore.create(root.findMember(cpe.getPath()).getProject());
+                classpath.addAll(resolveClasspath(root, jproj));
+                if (jproj.getOutputLocation() != null) {
+                    classpath.add(root.findMember(javaProject.getOutputLocation()).getLocation().toFile());
+                }
+                for (IClasspathEntry rcpe : jproj.getRawClasspath()) {
+                    if (rcpe.getOutputLocation() != null) {
+                        classpath.add(root.findMember(rcpe.getOutputLocation()).getLocation().toFile());
+                    }
+                }
+            } else if (cpe.getEntryKind() != IClasspathEntry.CPE_SOURCE && cpe.getPath() != null) {
+                File file = cpe.getPath().toFile();
+                if (!file.exists()) {
+                    // Probably a workspace absolute path. Resolve it.
+                    IResource res = root.findMember(cpe.getPath());
+                    if (res != null) {
+                        file = res.getLocation().toFile();
+                    }
+                }
+                if (file.exists()) {
+                    classpath.add(file);
+                }
+            }
+        }
+        return classpath;
     }
 
     private void shutdownDaemonIfRunning(IProject project) {
@@ -162,16 +200,19 @@ public class IBIntegratorManager implements IResourceChangeListener {
                             if ((delta.getFlags() & IResourceDelta.OPEN) != 0) {
                                 // Could be a RoboVM project that just opened.
                                 projectChanged(project);
+                                return false;
                             }
                         } else if (daemons.containsKey(name)) {
                             // Project was closed. Stop the daemon.
                             shutdownDaemonIfRunning(project);
+                            return false;
                         }
                     } else if ((resource.getType() & IResource.FILE) != 0) {
                         if ("robovm.xml".equals(resource.getName())) {
                             // A robovm.xml has been modified in some way. Could
                             // be a change to the resource folders.
                             projectChanged(resource.getProject());
+                            return false;
                         }
                     }
                     return true;

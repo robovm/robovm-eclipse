@@ -28,7 +28,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -343,7 +342,7 @@ public class RoboVMPlugin extends AbstractUIPlugin {
         return false;
     }
 
-    public static Collection<File> getRoboVMProjectResourcePaths(IProject project) {
+    public static Set<File> getRoboVMProjectResourcePaths(IProject project) {
         try {
             File projectRoot = project.getLocation().toFile();
             Config.Builder configBuilder = new Config.Builder();
@@ -355,9 +354,13 @@ public class RoboVMPlugin extends AbstractUIPlugin {
             Set<File> paths = new HashSet<>();
             for (Resource r : config.getResources()) {
                 if (r.getPath() != null) {
-                    paths.add(r.getPath());
+                    if (r.getPath().exists() && r.getPath().isDirectory()) {
+                        paths.add(r.getPath());
+                    }
                 } else if (r.getDirectory() != null) {
-                    paths.add(r.getDirectory());
+                    if (r.getDirectory().exists() && r.getDirectory().isDirectory()) {
+                        paths.add(r.getDirectory());
+                    }
                 }
             }
             return paths;
