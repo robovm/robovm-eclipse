@@ -147,19 +147,12 @@ public class IBIntegratorManager implements IResourceChangeListener {
 
     private LinkedHashSet<File> resolveClasspath(IWorkspaceRoot root, IJavaProject javaProject)
             throws JavaModelException {
+
         LinkedHashSet<File> classpath = new LinkedHashSet<>();
         for (IClasspathEntry cpe : javaProject.getResolvedClasspath(true)) {
             if (cpe.getEntryKind() == IClasspathEntry.CPE_PROJECT) {
                 IJavaProject jproj = JavaCore.create(root.findMember(cpe.getPath()).getProject());
                 classpath.addAll(resolveClasspath(root, jproj));
-                if (jproj.getOutputLocation() != null) {
-                    classpath.add(root.findMember(javaProject.getOutputLocation()).getLocation().toFile());
-                }
-                for (IClasspathEntry rcpe : jproj.getRawClasspath()) {
-                    if (rcpe.getOutputLocation() != null) {
-                        classpath.add(root.findMember(rcpe.getOutputLocation()).getLocation().toFile());
-                    }
-                }
             } else if (cpe.getEntryKind() != IClasspathEntry.CPE_SOURCE && cpe.getPath() != null) {
                 File file = cpe.getPath().toFile();
                 if (!file.exists()) {
@@ -174,6 +167,16 @@ public class IBIntegratorManager implements IResourceChangeListener {
                 }
             }
         }
+
+        if (javaProject.getOutputLocation() != null) {
+            classpath.add(root.findMember(javaProject.getOutputLocation()).getLocation().toFile());
+        }
+        for (IClasspathEntry cpe : javaProject.getRawClasspath()) {
+            if (cpe.getOutputLocation() != null) {
+                classpath.add(root.findMember(cpe.getOutputLocation()).getLocation().toFile());
+            }
+        }
+
         return classpath;
     }
 
