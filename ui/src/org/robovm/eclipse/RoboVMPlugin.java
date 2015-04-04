@@ -48,10 +48,12 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.preferences.DefaultScope;
 import org.eclipse.core.runtime.preferences.IPreferencesService;
 import org.eclipse.core.runtime.preferences.IScopeContext;
@@ -202,7 +204,17 @@ public class RoboVMPlugin extends AbstractUIPlugin {
             }
         });
         
-        IBIntegratorManager.getInstance().start();
+        Job job = new Job("RoboVM Interface Builder Integrator launcher") {
+            protected IStatus run(IProgressMonitor monitor) {
+                try {
+                    IBIntegratorManager.getInstance().start(monitor);
+                } catch (CoreException e) {
+                    log(e);
+                }
+                return Status.OK_STATUS;
+            }
+        };
+        job.schedule();
     }
 
     @Override

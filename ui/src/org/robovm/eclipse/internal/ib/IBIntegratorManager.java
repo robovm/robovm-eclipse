@@ -34,6 +34,7 @@ import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
@@ -70,10 +71,17 @@ public class IBIntegratorManager implements IResourceChangeListener {
         return daemons.get(project.getName());
     }
 
-    public void start() {
+    public void start(IProgressMonitor monitor) throws CoreException {
         if (!System.getProperty("os.name").toLowerCase().contains("mac os x")) {
             return;
         }
+        if (!hasIBIntegrator) {
+            return;
+        }
+
+        // Needed to make IJavaProject.getResolvedClasspath() work properly.
+        JavaCore.initializeAfterLoad(monitor);
+
         for (IProject p : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
             if (p.isOpen()) {
                 try {
@@ -137,7 +145,8 @@ public class IBIntegratorManager implements IResourceChangeListener {
         }
     }
 
-    private LinkedHashSet<File> resolveClasspath(IWorkspaceRoot root, IJavaProject javaProject) throws JavaModelException {
+    private LinkedHashSet<File> resolveClasspath(IWorkspaceRoot root, IJavaProject javaProject)
+            throws JavaModelException {
         LinkedHashSet<File> classpath = new LinkedHashSet<>();
         for (IClasspathEntry cpe : javaProject.getResolvedClasspath(true)) {
             if (cpe.getEntryKind() == IClasspathEntry.CPE_PROJECT) {
@@ -180,10 +189,6 @@ public class IBIntegratorManager implements IResourceChangeListener {
     @Override
     public void resourceChanged(IResourceChangeEvent event) {
         if (event == null || event.getDelta() == null) {
-            return;
-        }
-
-        if (!hasIBIntegrator) {
             return;
         }
 
