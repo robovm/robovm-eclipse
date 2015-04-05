@@ -17,6 +17,7 @@
 package org.robovm.eclipse.internal.ib;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Set;
 
@@ -44,9 +45,12 @@ public class IBIntegratorProxy {
 
     public IBIntegratorProxy(Home home, Logger logger, String projectName, File target) {
         try {
-            instance = getIBIntegratorClass().getConstructor(Home.class, Logger.class, String.class, File.class)
-                    .newInstance(
-                            home, logger, projectName, target);
+            try {
+                instance = getIBIntegratorClass().getConstructor(Home.class, Logger.class, String.class, File.class)
+                        .newInstance(home, logger, projectName, target);
+            } catch (InvocationTargetException e) {
+                throw e.getCause() != null ? e.getCause() : e;
+            }
         } catch (Error | RuntimeException e) {
             throw e;
         } catch (Throwable t) {
@@ -56,7 +60,11 @@ public class IBIntegratorProxy {
 
     public void setResourceFolders(Set<File> resourceFolders) {
         try {
-            getIBIntegratorClass().getMethod("setResourceFolders", Set.class).invoke(instance, resourceFolders);
+            try {
+                getIBIntegratorClass().getMethod("setResourceFolders", Set.class).invoke(instance, resourceFolders);
+            } catch (InvocationTargetException e) {
+                throw e.getCause() != null ? e.getCause() : e;
+            }
         } catch (Error | RuntimeException e) {
             throw e;
         } catch (Throwable t) {
@@ -66,7 +74,11 @@ public class IBIntegratorProxy {
 
     public void setClasspath(List<File> classpath) {
         try {
-            getIBIntegratorClass().getMethod("setClasspath", List.class).invoke(instance, classpath);
+            try {
+                getIBIntegratorClass().getMethod("setClasspath", List.class).invoke(instance, classpath);
+            } catch (InvocationTargetException e) {
+                throw e.getCause() != null ? e.getCause() : e;
+            }
         } catch (Error | RuntimeException e) {
             throw e;
         } catch (Throwable t) {
@@ -76,7 +88,11 @@ public class IBIntegratorProxy {
 
     public void setSourceFolders(Set<File> sourceFolders) {
         try {
-            getIBIntegratorClass().getMethod("setSourceFolders", Set.class).invoke(instance, sourceFolders);
+            try {
+                getIBIntegratorClass().getMethod("setSourceFolders", Set.class).invoke(instance, sourceFolders);
+            } catch (InvocationTargetException e) {
+                throw e.getCause() != null ? e.getCause() : e;
+            }
         } catch (Error | RuntimeException e) {
             throw e;
         } catch (Throwable t) {
@@ -86,8 +102,12 @@ public class IBIntegratorProxy {
 
     public File newIOSStoryboard(String name, File path) {
         try {
-            return (File) getIBIntegratorClass().getMethod("newIOSStoryboard", String.class, File.class)
-                    .invoke(instance, name, path);
+            try {
+                return (File) getIBIntegratorClass().getMethod("newIOSStoryboard", String.class, File.class)
+                        .invoke(instance, name, path);
+            } catch (InvocationTargetException e) {
+                throw e.getCause() != null ? e.getCause() : e;
+            }
         } catch (Error | RuntimeException e) {
             throw e;
         } catch (Throwable t) {
@@ -97,8 +117,12 @@ public class IBIntegratorProxy {
 
     public File newIOSView(String name, File path) {
         try {
-            return (File) getIBIntegratorClass().getMethod("newIOSView", String.class, File.class)
-                    .invoke(instance, name, path);
+            try {
+                return (File) getIBIntegratorClass().getMethod("newIOSView", String.class, File.class)
+                        .invoke(instance, name, path);
+            } catch (InvocationTargetException e) {
+                throw e.getCause() != null ? e.getCause() : e;
+            }
         } catch (Error | RuntimeException e) {
             throw e;
         } catch (Throwable t) {
@@ -108,8 +132,12 @@ public class IBIntegratorProxy {
 
     public File newIOSWindow(String name, File path) {
         try {
-            return (File) getIBIntegratorClass().getMethod("newIOSWindow", String.class, File.class)
-                    .invoke(instance, name, path);
+            try {
+                return (File) getIBIntegratorClass().getMethod("newIOSWindow", String.class, File.class)
+                        .invoke(instance, name, path);
+            } catch (InvocationTargetException e) {
+                throw e.getCause() != null ? e.getCause() : e;
+            }
         } catch (Error | RuntimeException e) {
             throw e;
         } catch (Throwable t) {
@@ -119,8 +147,12 @@ public class IBIntegratorProxy {
 
     public void openProjectFile(String file) {
         try {
-            getIBIntegratorClass().getMethod("openProjectFile", String.class)
-                    .invoke(instance, file);
+            try {
+                getIBIntegratorClass().getMethod("openProjectFile", String.class)
+                        .invoke(instance, file);
+            } catch (InvocationTargetException e) {
+                throw e.getCause() != null ? e.getCause() : e;
+            }
         } catch (Error | RuntimeException e) {
             throw e;
         } catch (Throwable t) {
@@ -130,7 +162,11 @@ public class IBIntegratorProxy {
 
     public void start() {
         try {
-            getIBIntegratorClass().getMethod("start").invoke(instance);
+            try {
+                getIBIntegratorClass().getMethod("start").invoke(instance);
+            } catch (InvocationTargetException e) {
+                throw e.getCause() != null ? e.getCause() : e;
+            }
         } catch (Error | RuntimeException e) {
             throw e;
         } catch (Throwable t) {
@@ -140,7 +176,11 @@ public class IBIntegratorProxy {
 
     public void shutDown() {
         try {
-            getIBIntegratorClass().getMethod("shutDown").invoke(instance);
+            try {
+                getIBIntegratorClass().getMethod("shutDown").invoke(instance);
+            } catch (InvocationTargetException e) {
+                throw e.getCause() != null ? e.getCause() : e;
+            }
         } catch (Error | RuntimeException e) {
             throw e;
         } catch (Throwable t) {
