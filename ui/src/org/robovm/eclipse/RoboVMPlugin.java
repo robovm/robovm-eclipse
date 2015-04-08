@@ -111,6 +111,8 @@ public class RoboVMPlugin extends AbstractUIPlugin {
     public static final String IMAGE_NEW_CONSOLE_PROJECT_BANNER = PLUGIN_ID + ".image.newConsoleProjectBanner";
     public static final String IMAGE_NEW_IOS_PROJECT_BANNER = PLUGIN_ID + ".image.newIOSProjectBanner";
     public static final String IMAGE_NEW_IOS_STORYBOARD_BANNER = PLUGIN_ID + ".image.newIOSStoryboardBanner";
+    public static final String IMAGE_NEW_IOS_VIEW_CONTROLLER_BANNER = PLUGIN_ID + ".image.newIOSViewControllerBanner";
+    public static final String IMAGE_NEW_IOS_VIEW_BANNER = PLUGIN_ID + ".image.newIOSViewBanner";
 
     public static final Arch[] ALL_ARCH_VALUES = new Arch[] { Arch.thumbv7, Arch.arm64, Arch.x86, Arch.x86_64 };
     public static final String[] ALL_ARCH_NAMES =
@@ -588,6 +590,10 @@ public class RoboVMPlugin extends AbstractUIPlugin {
                 getImageDescriptorFromPath(bundle, "icons/new_robovm_ios_project_banner.png"));
         reg.put(IMAGE_NEW_IOS_STORYBOARD_BANNER,
                 getImageDescriptorFromPath(bundle, "icons/new_robovm_ios_storyboard_banner.png"));
+        reg.put(IMAGE_NEW_IOS_VIEW_CONTROLLER_BANNER,
+                getImageDescriptorFromPath(bundle, "icons/new_robovm_ios_view_controller_banner.png"));
+        reg.put(IMAGE_NEW_IOS_VIEW_BANNER,
+                getImageDescriptorFromPath(bundle, "icons/new_robovm_ios_view_banner.png"));
     }
 
     private static ImageDescriptor getImageDescriptorFromPath(Bundle bundle, String pathString) {

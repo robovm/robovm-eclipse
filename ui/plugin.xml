@@ -43,6 +43,34 @@
       preferredPerspectives="org.eclipse.jdt.ui.JavaPerspective"
       project="false"/>
   </extension>
+  <extension point="org.eclipse.ui.newWizards">
+    <category id="org.robovm.eclipse.wizards.category" name="RoboVM"/>
+    <wizard
+      canFinishEarly="false"
+      category="org.robovm.eclipse.wizards.category"
+      class="org.robovm.eclipse.internal.ib.NewViewControllerWizard"
+      finalPerspective="org.eclipse.jdt.ui.JavaPerspective"
+      hasPages="true"
+      icon="icons/new_robovm_ios_view_controller.png"
+      id="org.robovm.eclipse.ib.NewViewControllerWizard"
+      name="iOS View Controller"
+      preferredPerspectives="org.eclipse.jdt.ui.JavaPerspective"
+      project="false"/>
+  </extension>
+  <extension point="org.eclipse.ui.newWizards">
+    <category id="org.robovm.eclipse.wizards.category" name="RoboVM"/>
+    <wizard
+      canFinishEarly="false"
+      category="org.robovm.eclipse.wizards.category"
+      class="org.robovm.eclipse.internal.ib.NewViewWizard"
+      finalPerspective="org.eclipse.jdt.ui.JavaPerspective"
+      hasPages="true"
+      icon="icons/new_robovm_ios_view.png"
+      id="org.robovm.eclipse.ib.NewViewWizard"
+      name="iOS View"
+      preferredPerspectives="org.eclipse.jdt.ui.JavaPerspective"
+      project="false"/>
+  </extension>
   <extension point="org.eclipse.ui.perspectiveExtensions">
     <perspectiveExtension targetID="org.eclipse.jdt.ui.JavaPerspective">
       <newWizardShortcut id="org.robovm.eclipse.NewProjectWizard" />
@@ -424,6 +452,12 @@
                name="iOS Storyboard Editor"
                icon="icons/ios_storyboard_file.png"
                extensions="storyboard"
+               launcher="org.robovm.eclipse.internal.ib.XcodeLauncher">
+       </editor>
+       <editor id="org.robovm.eclipse.ib.WindowEditor"
+               name="iOS XIB Editor"
+               icon="icons/ios_xib_file.png"
+               extensions="xib"
                launcher="org.robovm.eclipse.internal.ib.XcodeLauncher">
        </editor>
     </extension>

@@ -130,10 +130,10 @@ public class IBIntegratorProxy {
         }
     }
 
-    public File newIOSWindow(String name, File path) {
+    public File newIOSViewController(String name, File path) {
         try {
             try {
-                return (File) getIBIntegratorClass().getMethod("newIOSWindow", String.class, File.class)
+                return (File) getIBIntegratorClass().getMethod("newIOSViewController", String.class, File.class)
                         .invoke(instance, name, path);
             } catch (InvocationTargetException e) {
                 throw e.getCause() != null ? e.getCause() : e;

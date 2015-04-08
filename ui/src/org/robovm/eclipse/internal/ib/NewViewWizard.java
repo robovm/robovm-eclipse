@@ -24,40 +24,40 @@ import org.robovm.eclipse.RoboVMPlugin;
 /**
  * 
  */
-public class NewStoryboardWizard extends AbstractNewXcodeFileWizard {
+public class NewViewWizard extends AbstractNewXcodeFileWizard {
 
     @Override
     protected String getExtension() {
-        return "storyboard";
+        return "xib";
     }
 
     @Override
     protected String getTitle() {
-        return "New iOS Storyboard";
+        return "New iOS view UI";
     }
 
     @Override
     protected String getPageTitle() {
-        return "Storyboard";
+        return "View UI";
     }
 
     @Override
     protected String getPageDescription() {
-        return "Create a new iOS Storyboard";
+        return "Create a new Interface Builder document for an iOS view";
     }
 
     @Override
     protected String getPageBanner() {
-        return RoboVMPlugin.IMAGE_NEW_IOS_STORYBOARD_BANNER;
+        return RoboVMPlugin.IMAGE_NEW_IOS_VIEW_BANNER;
     }
 
     @Override
     protected String getPageName() {
-        return "newIOSStoryboardPage";
+        return "newIOSViewPage";
     }
 
     @Override
     protected void createFile(IProject project, String name, File path) {
-        IBIntegratorManager.getInstance().getIBIntegrator(project).newIOSStoryboard(name, path);
+        IBIntegratorManager.getInstance().getIBIntegrator(project).newIOSView(name, path);
     }
 }
