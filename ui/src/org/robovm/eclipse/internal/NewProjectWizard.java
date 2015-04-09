@@ -114,11 +114,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
     }
     
     protected String getTemplateName() {
-        if(this instanceof NewCocoaTouchProjectWizard) {
-            return "default";
-        } else {
-            return "console";
-        }
+        return "console";
     }
 
     @Override

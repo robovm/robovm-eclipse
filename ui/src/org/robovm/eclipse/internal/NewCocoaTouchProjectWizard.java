@@ -84,6 +84,11 @@ public class NewCocoaTouchProjectWizard extends NewProjectWizard {
     }
 
     @Override
+    protected String getTemplateName() {
+        return "single-view";
+    }
+
+    @Override
     protected void customizeTemplate(Templater templater) throws Exception {
         IProject project = page2.getJavaProject().getProject();
 
