@@ -126,6 +126,11 @@ public class IBIntegratorManager implements IResourceChangeListener {
             IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
             IJavaProject javaProject = JavaCore.create(project);
 
+            File infoPlist = RoboVMPlugin.getRoboVMProjectInfoPlist(project);
+            if (infoPlist != null) {
+                proxy.setInfoPlist(infoPlist);
+            }
+
             List<File> classpath = new ArrayList<>(resolveClasspath(root, javaProject));
             proxy.setClasspath(classpath);
 

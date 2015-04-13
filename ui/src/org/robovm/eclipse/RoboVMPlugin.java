@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
+import java.nio.file.Files;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -361,7 +362,8 @@ public class RoboVMPlugin extends AbstractUIPlugin {
             File projectRoot = project.getLocation().toFile();
             Config.Builder configBuilder = new Config.Builder();
             configBuilder.home(RoboVMPlugin.getRoboVMHome());
-            configBuilder.addClasspathEntry(new File(".")); // Fake a classpath to make Config happy
+            // Fake a classpath to make Config happy
+            configBuilder.addClasspathEntry(Files.createTempDirectory("empty").toFile());
             configBuilder.skipLinking(true);
             RoboVMPlugin.loadConfig(configBuilder, projectRoot, false);
             Config config = configBuilder.build();
@@ -378,6 +380,22 @@ public class RoboVMPlugin extends AbstractUIPlugin {
                 }
             }
             return paths;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static File getRoboVMProjectInfoPlist(IProject project) {
+        try {
+            File projectRoot = project.getLocation().toFile();
+            Config.Builder configBuilder = new Config.Builder();
+            configBuilder.home(RoboVMPlugin.getRoboVMHome());
+            // Fake a classpath to make Config happy
+            configBuilder.addClasspathEntry(Files.createTempDirectory("empty").toFile());
+            configBuilder.skipLinking(true);
+            RoboVMPlugin.loadConfig(configBuilder, projectRoot, false);
+            Config config = configBuilder.build();
+            return config.getIosInfoPList().getFile();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
