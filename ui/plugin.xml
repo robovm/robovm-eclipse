@@ -43,7 +43,7 @@
       preferredPerspectives="org.eclipse.jdt.ui.JavaPerspective"
       project="false"/>
   </extension>
-  <extension point="org.eclipse.ui.newWizards">
+<!--  <extension point="org.eclipse.ui.newWizards">
     <category id="org.robovm.eclipse.wizards.category" name="RoboVM"/>
     <wizard
       canFinishEarly="false"
@@ -70,7 +70,7 @@
       name="iOS View"
       preferredPerspectives="org.eclipse.jdt.ui.JavaPerspective"
       project="false"/>
-  </extension>
+  </extension> -->
   <extension point="org.eclipse.ui.perspectiveExtensions">
     <perspectiveExtension targetID="org.eclipse.jdt.ui.JavaPerspective">
       <newWizardShortcut id="org.robovm.eclipse.NewProjectWizard" />
