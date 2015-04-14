@@ -414,6 +414,19 @@
         nameFilter="*"
         objectClass="org.eclipse.core.resources.IProject"
         adaptable="true">
+      <filter name="projectNature" value="org.robovm.eclipse.RoboVMNature"/>
+      <action
+            class="org.robovm.eclipse.internal.ib.OpenXcodeAction"
+            enablesFor="1"
+            id="org.robovm.eclipse.OpenXcodeAction"
+            label="Open Xcode Project">
+      </action>
+    </objectContribution>
+    <objectContribution
+        id="org.robovm.eclipse.contribution2"
+        nameFilter="*"
+        objectClass="org.eclipse.core.resources.IProject"
+        adaptable="true">
       <menu
           id="org.robovm.eclipse.RoboVMTools"
           label="RoboVM Tools"
