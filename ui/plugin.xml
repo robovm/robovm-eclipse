@@ -422,43 +422,43 @@
         <separator name="group2" />
         <separator name="group3" />
         <separator name="group4" />
-    </menu>
-    <filter name="projectNature" value="org.robovm.eclipse.RoboVMNature"/>
-        <action
+      </menu>
+      <filter name="projectNature" value="org.robovm.eclipse.RoboVMNature"/>
+      <action
             class="org.robovm.eclipse.internal.actions.CreateIPAAction"
             enablesFor="1"
             id="org.robovm.eclipse.CreateIPAAction"
             label="Package for App Store/Ad-Hoc distribution..."
             menubarPath="org.robovm.eclipse.RoboVMTools/group1"
             tooltip="Packages an iOS app in an IPA archive for App Store or Ad-Hoc distribution">
-        </action>
-      </objectContribution>
-    </extension>
-    <extension point="org.eclipse.ui.commands">
-      <command id="org.robovm.eclipse.OpenLicenseManager"
+      </action>
+    </objectContribution>
+  </extension>
+  <extension point="org.eclipse.ui.commands">
+    <command id="org.robovm.eclipse.OpenLicenseManager"
           defaultHandler="org.robovm.eclipse.OpenLicenseManagerHandler"
           name="RoboVM License Manager"/>
-    </extension>
-    <extension point="org.eclipse.ui.menus">
-      <menuContribution locationURI="menu:org.eclipse.ui.main.menu?before=window">
-        <menu id="robovmMenu" label="RoboVM">
-          <command commandId="org.robovm.eclipse.OpenLicenseManager"
+  </extension>
+  <extension point="org.eclipse.ui.menus">
+    <menuContribution locationURI="menu:org.eclipse.ui.main.menu?before=window">
+      <menu id="robovmMenu" label="RoboVM">
+        <command commandId="org.robovm.eclipse.OpenLicenseManager"
               label="License Manager"/>
-        </menu>
-      </menuContribution>
-    </extension>
-    <extension point="org.eclipse.ui.editors">
-       <editor id="org.robovm.eclipse.ib.StoryboardEditor"
+      </menu>
+    </menuContribution>
+  </extension>
+  <extension point="org.eclipse.ui.editors">
+    <editor id="org.robovm.eclipse.ib.StoryboardEditor"
                name="iOS Storyboard Editor"
                icon="icons/ios_storyboard_file.png"
                extensions="storyboard"
                launcher="org.robovm.eclipse.internal.ib.XcodeLauncher">
-       </editor>
-       <editor id="org.robovm.eclipse.ib.WindowEditor"
+    </editor>
+    <editor id="org.robovm.eclipse.ib.WindowEditor"
                name="iOS XIB Editor"
                icon="icons/ios_xib_file.png"
                extensions="xib"
                launcher="org.robovm.eclipse.internal.ib.XcodeLauncher">
-       </editor>
-    </extension>
+    </editor>
+  </extension>
 </plugin>
