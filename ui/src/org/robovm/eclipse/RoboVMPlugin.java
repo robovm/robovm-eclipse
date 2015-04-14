@@ -44,7 +44,6 @@ import org.apache.commons.io.output.NullOutputStream;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
@@ -52,12 +51,8 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.core.runtime.preferences.DefaultScope;
-import org.eclipse.core.runtime.preferences.IPreferencesService;
-import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
@@ -99,12 +94,6 @@ import org.robovm.eclipse.internal.ib.IBIntegratorManager;
 public class RoboVMPlugin extends AbstractUIPlugin {
 
     public static final String PLUGIN_ID = "org.robovm.eclipse";
-    public static final String PREFERENCE_USE_SYSTEM_GCC = PLUGIN_ID + ".prefs.useSystemGcc";
-    public static final String PREFERENCE_GCC_BIN_DIR = PLUGIN_ID + ".prefs.gccBinDir";
-    public static final String PREFERENCE_USE_SYSTEM_BINUTILS = PLUGIN_ID + ".prefs.useSystemBinutils";
-    public static final String PREFERENCE_BINUTILS_BIN_DIR = PLUGIN_ID + ".prefs.binutilsBinDir";
-    public static final String PREFERENCE_INCREMENTAL_BUILD_ARCH = PLUGIN_ID + ".prefs.incrementalBuildArch";
-    public static final String PREFERENCE_INCREMENTAL_BUILD_OS = PLUGIN_ID + ".prefs.incrementalBuildOs";
     public static final String LAUNCH_ARCH = PLUGIN_ID + ".launch.arch";
     public static final String LAUNCH_OS = PLUGIN_ID + ".launch.os";
     public static final String ARCH_AUTO = "auto";
@@ -476,26 +465,8 @@ public class RoboVMPlugin extends AbstractUIPlugin {
         return digest.digest();
     }
 
-    public static String getIncrementalBuildArch(IProject project) {
-        IPreferencesService prefs = Platform.getPreferencesService();
-        IScopeContext[] contexts = new IScopeContext[] { new ProjectScope(project),
-            InstanceScope.INSTANCE, DefaultScope.INSTANCE };
-        return prefs.getString(PLUGIN_ID, PREFERENCE_INCREMENTAL_BUILD_ARCH, ARCH_AUTO, contexts);
-    }
-
-    public static String getIncrementalBuildOS(IProject project) {
-        IPreferencesService prefs = Platform.getPreferencesService();
-        IScopeContext[] contexts = new IScopeContext[] { new ProjectScope(project),
-            InstanceScope.INSTANCE, DefaultScope.INSTANCE };
-        return prefs.getString(PLUGIN_ID, PREFERENCE_INCREMENTAL_BUILD_OS, OS_AUTO, contexts);
-    }
-
     public static Arch getDefaultArch() {
         return Arch.getDefaultArch();
-    }
-
-    public static Arch getArch(IProject project) {
-        return getArch(getIncrementalBuildArch(project));
     }
 
     public static Arch getArch(String s) {
@@ -507,10 +478,6 @@ public class RoboVMPlugin extends AbstractUIPlugin {
 
     public static OS getDefaultOS() {
         return OS.getDefaultOS();
-    }
-
-    public static OS getOS(IProject project) {
-        return getOS(getIncrementalBuildOS(project));
     }
 
     public static OS getOS(String s) {

@@ -36,8 +36,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
-import org.robovm.compiler.config.Arch;
-import org.robovm.compiler.config.OS;
 import org.robovm.eclipse.RoboVMPlugin;
 import org.robovm.templater.Templater;
 
@@ -53,7 +51,7 @@ public class NewCocoaTouchProjectWizard extends NewProjectWizard {
 
     @Override
     protected RoboVMPageOne createPageOne() {
-        RoboVMPageOne page = new IOSPageOne(getDefaultArch(), getDefaultOs());
+        RoboVMPageOne page = new IOSPageOne();
         page.setImageDescriptor(RoboVMPlugin.getDefault().getImageRegistry()
                 .getDescriptor(RoboVMPlugin.IMAGE_NEW_IOS_PROJECT_BANNER));
         return page;
@@ -65,16 +63,6 @@ public class NewCocoaTouchProjectWizard extends NewProjectWizard {
         page.setImageDescriptor(RoboVMPlugin.getDefault().getImageRegistry()
                 .getDescriptor(RoboVMPlugin.IMAGE_NEW_IOS_PROJECT_BANNER));
         return page;
-    }
-
-    @Override
-    protected String getDefaultArch() {
-        return Arch.x86.toString();
-    }
-
-    @Override
-    protected String getDefaultOs() {
-        return OS.ios.toString();
     }
 
     @Override
@@ -112,10 +100,6 @@ public class NewCocoaTouchProjectWizard extends NewProjectWizard {
         private Text mainClassText;
         private Text appNameText;
         private Text appIdText;
-
-        public IOSPageOne(String defaultArch, String defaultOs) {
-            super(defaultArch, defaultOs);
-        }
 
         @Override
         protected void addCustomControls(Composite parent) {

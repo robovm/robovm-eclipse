@@ -371,30 +371,6 @@
       </contextualLaunch>
     </shortcut>
   </extension>
-  <extension point="org.eclipse.core.runtime.preferences">
-    <initializer class="org.robovm.eclipse.internal.RoboVMPreferenceInitializer"/>
-  </extension>
-  <extension point="org.eclipse.ui.preferencePages">
-    <page
-      class="org.robovm.eclipse.internal.RoboVMPreferencePage"
-      id="org.robovm.eclipse.preferences.main"
-      name="RoboVM" />
-  </extension>
-  <extension point="org.eclipse.ui.propertyPages">
-    <page
-      class="org.robovm.eclipse.internal.RoboVMPropertyPage"
-      id="org.robovm.eclipse.RoboVMPropertyPage"
-      name="RoboVM"
-      nameFilter="*">
-      <enabledWhen>
-        <and>
-          <adapt type="org.eclipse.core.resources.IProject"/>
-          <test property="org.eclipse.jdt.launching.hasProjectNature" 
-                args="org.robovm.eclipse.RoboVMNature" />
-        </and>
-      </enabledWhen>
-    </page>
-  </extension>
   <extension point="org.eclipse.ui.commands">
     <category
             name="Category name"

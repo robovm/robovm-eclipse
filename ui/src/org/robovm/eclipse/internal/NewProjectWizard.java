@@ -80,7 +80,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
     }
 
     protected RoboVMPageOne createPageOne() {
-        RoboVMPageOne page = new RoboVMPageOne(getDefaultArch(), getDefaultOs());
+        RoboVMPageOne page = new RoboVMPageOne();
         page.setImageDescriptor(RoboVMPlugin.getDefault().getImageRegistry()
                 .getDescriptor(RoboVMPlugin.IMAGE_NEW_CONSOLE_PROJECT_BANNER));
         return page;
@@ -91,14 +91,6 @@ public class NewProjectWizard extends Wizard implements INewWizard {
         page.setImageDescriptor(RoboVMPlugin.getDefault().getImageRegistry()
                 .getDescriptor(RoboVMPlugin.IMAGE_NEW_CONSOLE_PROJECT_BANNER));
         return page;
-    }
-
-    protected String getDefaultArch() {
-        return RoboVMPlugin.ARCH_AUTO;
-    }
-
-    protected String getDefaultOs() {
-        return RoboVMPlugin.OS_AUTO;
     }
 
     protected List<IClasspathEntry> customizeClasspath(List<IClasspathEntry> classpath) {
@@ -168,13 +160,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 
     public static class RoboVMPageOne extends NewJavaProjectWizardPageOne {
 
-        private final String defaultArch;
-        private final String defaultOs;
-        private ProjectProperties projectProperties = null;
-
-        public RoboVMPageOne(String defaultArch, String defaultOs) {
-            this.defaultArch = defaultArch;
-            this.defaultOs = defaultOs;
+        public RoboVMPageOne() {
         }
 
         @Override
@@ -231,13 +217,9 @@ public class NewProjectWizard extends Wizard implements INewWizard {
         }
 
         protected void addCustomControls(Composite parent) {
-            projectProperties = new ProjectProperties(parent, true);
-            projectProperties.setArch(defaultArch);
-            projectProperties.setOs(defaultOs);
         }
 
         public void storePreferences(IProject project) throws BackingStoreException {
-            projectProperties.storePreferences(project);
         }
     }
 }

@@ -16,12 +16,6 @@
  */
 package org.robovm.eclipse.internal;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-
-import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IProjectNature;
@@ -42,11 +36,9 @@ public class RoboVMNature implements IProjectNature {
     private IProject project;
     
     public void configure() throws CoreException {
-        addClassBuilder();
     }
 
     public void deconfigure() throws CoreException {
-        removeBuilder(RoboVMClassBuilder.ID);
     }
 
     public IProject getProject() {
@@ -82,44 +74,6 @@ public class RoboVMNature implements IProjectNature {
             newNatures[natures.length] = natureId;
             description.setNatureIds(newNatures);
             project.setDescription(description, new SubProgressMonitor(monitor, 10));
-        }
-    }
-    
-    private void addClassBuilder() throws CoreException {
-        IProjectDescription desc = project.getDescription();
-        List<ICommand> commands = new ArrayList<ICommand>(Arrays.asList(desc.getBuildSpec()));
-
-        for (ICommand command : commands) {
-            if (RoboVMClassBuilder.ID.equals(command.getBuilderName())) {
-                return;
-            }
-        }
-
-        for (int i = 0; i < commands.size(); i++) {
-            if (JavaCore.BUILDER_ID.equals(commands.get(i).getBuilderName())) {
-                ICommand command = desc.newCommand();
-                command.setBuilderName(RoboVMClassBuilder.ID);
-                commands.add(i + 1, command);
-                desc.setBuildSpec(commands.toArray(new ICommand[commands.size()]));
-                project.setDescription(desc, null);
-                return;
-            }
-        }
-        
-        // TODO: Throw an exception here?
-    }
-    
-    private void removeBuilder(String id) throws CoreException {
-        IProjectDescription desc = project.getDescription();
-        List<ICommand> commands = new ArrayList<ICommand>(Arrays.asList(desc.getBuildSpec()));
-        for (Iterator<ICommand> it = commands.iterator(); it.hasNext();) {
-            ICommand command = it.next();
-            if (id.equals(command.getBuilderName())) {
-                it.remove();
-                desc.setBuildSpec(commands.toArray(new ICommand[commands.size()]));
-                project.setDescription(desc, null);
-                return;
-            }
         }
     }
 }
