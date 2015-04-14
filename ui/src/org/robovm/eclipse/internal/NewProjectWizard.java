@@ -32,18 +32,13 @@ import org.eclipse.jdt.ui.wizards.NewJavaProjectWizardPageOne;
 import org.eclipse.jdt.ui.wizards.NewJavaProjectWizardPageTwo;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.events.ControlAdapter;
-import org.eclipse.swt.events.ControlEvent;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 import org.osgi.service.prefs.BackingStoreException;
+import org.robovm.compiler.config.Config.TargetType;
 import org.robovm.eclipse.RoboVMPlugin;
 import org.robovm.templater.Templater;
 
@@ -106,7 +101,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
     }
     
     protected String getTemplateName() {
-        return "console";
+        return page1.templateChooser.getSelectedTemplate();
     }
 
     @Override
@@ -159,29 +154,15 @@ public class NewProjectWizard extends Wizard implements INewWizard {
     }
 
     public static class RoboVMPageOne extends NewJavaProjectWizardPageOne {
+        private TemplateChooser templateChooser;
 
         public RoboVMPageOne() {
         }
 
-        @Override
-        public void createControl(Composite parent) {
-            // Wrap the contents in a ScrolledComposite to make it accessible even on small screens
-            final ScrolledComposite sc = new ScrolledComposite(parent, SWT.V_SCROLL | SWT.H_SCROLL);
-            sc.setExpandVertical(true);
-            sc.setExpandHorizontal(true);
-            final Composite composite = new Composite(sc, SWT.NONE);
-            composite.setLayout(new GridLayout(1, true));
-            sc.setContent(composite);
-            sc.addControlListener(new ControlAdapter() {
-                public void controlResized(ControlEvent e) {
-                    Rectangle r = sc.getClientArea();
-                    sc.setMinSize(composite.computeSize(r.width,
-                            SWT.DEFAULT));
-                }
-            });
-            super.createControl(composite);
+        protected TargetType getTargetType() {
+            return TargetType.console;
         }
-
+        
         @Override
         public String getCompilerCompliance() {
             return JavaCore.VERSION_1_7;
@@ -217,6 +198,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
         }
 
         protected void addCustomControls(Composite parent) {
+            templateChooser = new TemplateChooser(parent, getTargetType());
         }
 
         public void storePreferences(IProject project) throws BackingStoreException {

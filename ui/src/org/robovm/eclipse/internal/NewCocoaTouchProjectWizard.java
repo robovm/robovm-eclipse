@@ -36,6 +36,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
+import org.robovm.compiler.config.Config.TargetType;
 import org.robovm.eclipse.RoboVMPlugin;
 import org.robovm.templater.Templater;
 
@@ -72,11 +73,6 @@ public class NewCocoaTouchProjectWizard extends NewProjectWizard {
     }
 
     @Override
-    protected String getTemplateName() {
-        return "single-view";
-    }
-
-    @Override
     protected void customizeTemplate(Templater templater) throws Exception {
         IProject project = page2.getJavaProject().getProject();
 
@@ -100,6 +96,11 @@ public class NewCocoaTouchProjectWizard extends NewProjectWizard {
         private Text mainClassText;
         private Text appNameText;
         private Text appIdText;
+
+        @Override
+        protected TargetType getTargetType() {
+            return TargetType.ios;
+        }
 
         @Override
         protected void addCustomControls(Composite parent) {
