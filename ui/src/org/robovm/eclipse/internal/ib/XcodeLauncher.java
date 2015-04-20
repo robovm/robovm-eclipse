@@ -16,11 +16,13 @@
  */
 package org.robovm.eclipse.internal.ib;
 
-import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.ui.IEditorLauncher;
+import org.robovm.eclipse.RoboVMPlugin;
 
 /**
  * Opens a file in Xcode.
@@ -29,14 +31,20 @@ public class XcodeLauncher implements IEditorLauncher {
 
     @Override
     public void open(IPath file) {
-        IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-        if (file.isAbsolute()) {
-            file = file.makeRelativeTo(root.getLocation());
-        }
-        IResource resource = root.findMember(file);
-        IBIntegratorProxy ib = IBIntegratorManager.getInstance().getIBIntegrator(resource.getProject());
-        if (ib != null) {
-            ib.openProjectFile(resource.getLocation().toFile().getAbsolutePath());
+        try {
+            IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+            for (IProject project : root.getProjects()) {
+                if (project.isOpen() && RoboVMPlugin.isRoboVMIOSProject(project)) {
+                    if (project.getLocation().isPrefixOf(file)) {
+                        IBIntegratorProxy ib = IBIntegratorManager.getInstance().getIBIntegrator(project);
+                        if (ib != null) {
+                            ib.openProjectFile(file.toString());
+                        }
+                    }
+                }
+            }
+        } catch (CoreException e) {
+            RoboVMPlugin.log(e);
         }
     }
 
