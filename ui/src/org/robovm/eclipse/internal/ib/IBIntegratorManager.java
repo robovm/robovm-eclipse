@@ -134,16 +134,7 @@ public class IBIntegratorManager implements IResourceChangeListener {
             List<File> classpath = new ArrayList<>(resolveClasspath(root, javaProject));
             proxy.setClasspath(classpath);
 
-            LinkedHashSet<File> outputPaths = new LinkedHashSet<>();
-            if (javaProject.getOutputLocation() != null) {
-                outputPaths.add(root.findMember(javaProject.getOutputLocation()).getLocation().toFile());
-            }
-            for (IClasspathEntry cpe : javaProject.getRawClasspath()) {
-                if (cpe.getOutputLocation() != null) {
-                    outputPaths.add(root.findMember(cpe.getOutputLocation()).getLocation().toFile());
-                }
-            }
-            proxy.setSourceFolders(outputPaths);
+            proxy.setSourceFolders(getOutputLocations(javaProject));
 
             Set<File> resourcePaths = RoboVMPlugin.getRoboVMProjectResourcePaths(project);
             proxy.setResourceFolders(resourcePaths);
@@ -173,16 +164,33 @@ public class IBIntegratorManager implements IResourceChangeListener {
             }
         }
 
+        classpath.addAll(getOutputLocations(javaProject));
+
+        return classpath;
+    }
+
+    private LinkedHashSet<File> getOutputLocations(IJavaProject javaProject)
+            throws JavaModelException {
+
+        LinkedHashSet<File> result = new LinkedHashSet<>();
+
+        IProject project = javaProject.getProject();
         if (javaProject.getOutputLocation() != null) {
-            classpath.add(root.findMember(javaProject.getOutputLocation()).getLocation().toFile());
+            File f = project.getFile(javaProject.getOutputLocation().removeFirstSegments(1)).getLocation().toFile();
+            if (f.exists()) {
+                result.add(f);
+            }
         }
         for (IClasspathEntry cpe : javaProject.getRawClasspath()) {
             if (cpe.getOutputLocation() != null) {
-                classpath.add(root.findMember(cpe.getOutputLocation()).getLocation().toFile());
+                File f = project.getFile(cpe.getOutputLocation().removeFirstSegments(1)).getLocation().toFile();
+                if (f.exists()) {
+                    result.add(f);
+                }
             }
         }
 
-        return classpath;
+        return result;
     }
 
     private void shutdownDaemonIfRunning(IProject project) {
