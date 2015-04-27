@@ -195,8 +195,9 @@ public class RoboVMPlugin extends AbstractUIPlugin {
                 errorStream.setColor(errorColor);
             }
         });
-        
+
         Job job = new Job("RoboVM Interface Builder Integrator launcher") {
+            @Override
             protected IStatus run(IProgressMonitor monitor) {
                 try {
                     IBIntegratorManager.getInstance().start(monitor);
@@ -384,7 +385,10 @@ public class RoboVMPlugin extends AbstractUIPlugin {
             configBuilder.skipLinking(true);
             RoboVMPlugin.loadConfig(configBuilder, projectRoot, false);
             Config config = configBuilder.build();
-            return config.getIosInfoPList().getFile();
+            if (config.getIosInfoPList() != null) {
+                return config.getIosInfoPList().getFile();
+            }
+            return null;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
