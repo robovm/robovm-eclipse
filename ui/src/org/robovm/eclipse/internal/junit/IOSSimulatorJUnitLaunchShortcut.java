@@ -16,12 +16,9 @@
  */
 package org.robovm.eclipse.internal.junit;
 
-import java.io.IOException;
-
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.robovm.compiler.target.ios.DeviceType;
 import org.robovm.compiler.target.ios.DeviceType.DeviceFamily;
-import org.robovm.eclipse.RoboVMPlugin;
 
 /**
  *
@@ -35,11 +32,7 @@ public class IOSSimulatorJUnitLaunchShortcut extends AbstractJUnitLaunchShortcut
 
     @Override
     protected void customizeConfiguration(ILaunchConfigurationWorkingCopy wc) {
-        try {
-            wc.setAttribute(IOSSimulatorJUnitLaunchConfigurationDelegate.ATTR_IOS_SIM_DEVICE_TYPE,
-                    DeviceType.getBestDeviceType(RoboVMPlugin.getRoboVMHome(), DeviceFamily.iPhone).getSimpleDeviceTypeId());
-        } catch (IOException e) {
-            RoboVMPlugin.log(e);
-        }
+        wc.setAttribute(IOSSimulatorJUnitLaunchConfigurationDelegate.ATTR_IOS_SIM_DEVICE_TYPE,
+                DeviceType.getBestDeviceType(DeviceFamily.iPhone).getSimpleDeviceTypeId());
     }
 }

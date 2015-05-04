@@ -16,9 +16,7 @@
  */
 package org.robovm.eclipse.internal;
 
-import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -101,12 +99,7 @@ public class IOSSimulatorLaunchConfigurationTabGroup extends AbstractLaunchConfi
             typeLabel.setText("Device type:");
             typeLabel.setLayoutData(new GridData(GridData.BEGINNING, GridData.CENTER, false, false));
 
-            List<DeviceType> types = Collections.<DeviceType> emptyList();
-            try {
-                types = DeviceType.listDeviceTypes(RoboVMPlugin.getRoboVMHome());
-            } catch (IOException e) {
-                RoboVMPlugin.log(e);
-            }
+            List<DeviceType> types = DeviceType.listDeviceTypes();
             String[] deviceDisplayNames = new String[types.size()];
             for (int i = 0; i < deviceDisplayNames.length; i++) {
                 deviceDisplayNames[i] = types.get(i).getSimpleDeviceTypeId();
@@ -147,9 +140,9 @@ public class IOSSimulatorLaunchConfigurationTabGroup extends AbstractLaunchConfi
             try {
                 String v = config.getAttribute(IOSSimulatorLaunchConfigurationDelegate.ATTR_IOS_SIM_DEVICE_TYPE,
                         (String) null);
-                DeviceType type = DeviceType.getDeviceType(RoboVMPlugin.getRoboVMHome(), v);
+                DeviceType type = DeviceType.getDeviceType(v);
                 if (type == null) {
-                    type = DeviceType.getBestDeviceType(RoboVMPlugin.getRoboVMHome());
+                    type = DeviceType.getBestDeviceType();
                 }
 
                 String[] items = deviceTypeCombo.getItems();
@@ -188,12 +181,8 @@ public class IOSSimulatorLaunchConfigurationTabGroup extends AbstractLaunchConfi
         @Override
         public void setDefaults(ILaunchConfigurationWorkingCopy wc) {
             super.setDefaults(wc);
-            try {
-                wc.setAttribute(IOSSimulatorLaunchConfigurationDelegate.ATTR_IOS_SIM_DEVICE_TYPE,
-                        DeviceType.getBestDeviceType(RoboVMPlugin.getRoboVMHome()).getSimpleDeviceTypeId());
-            } catch (IOException e) {
-                RoboVMPlugin.log(e);
-            }
+            wc.setAttribute(IOSSimulatorLaunchConfigurationDelegate.ATTR_IOS_SIM_DEVICE_TYPE,
+                    DeviceType.getBestDeviceType().getSimpleDeviceTypeId());
             wc.setAttribute(IOSSimulatorLaunchConfigurationDelegate.ATTR_IOS_SIM_ARCH, 
                     IOSSimulatorLaunchConfigurationDelegate.DEFAULT_ARCH.toString());
         }

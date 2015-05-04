@@ -71,7 +71,7 @@ public class IOSSimulatorLaunchConfigurationDelegate extends AbstractLaunchConfi
         IOSSimulatorLaunchParameters lp = (IOSSimulatorLaunchParameters) launchParameters;
         String deviceTypeId = configuration.getAttribute(ATTR_IOS_SIM_DEVICE_TYPE, (String) null);
         if (deviceTypeId != null) {
-            lp.setDeviceType(DeviceType.getDeviceType(RoboVMPlugin.getRoboVMHome(), deviceTypeId));
+            lp.setDeviceType(DeviceType.getDeviceType(deviceTypeId));
         }
     }
 }

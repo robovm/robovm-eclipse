@@ -16,7 +16,6 @@
  */
 package org.robovm.eclipse.internal;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +24,6 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.robovm.compiler.target.ios.DeviceType;
 import org.robovm.compiler.target.ios.DeviceType.DeviceFamily;
-import org.robovm.eclipse.RoboVMPlugin;
 
 /**
  * @author niklas
@@ -40,12 +38,8 @@ public abstract class IOSSimulatorLaunchShortcut extends AbstractProjectLaunchSh
 
     @Override
     protected void customizeConfiguration(ILaunchConfigurationWorkingCopy wc) {
-        try {
-            wc.setAttribute(IOSSimulatorLaunchConfigurationDelegate.ATTR_IOS_SIM_DEVICE_TYPE,
-                    DeviceType.getBestDeviceType(RoboVMPlugin.getRoboVMHome(), getFamily()).getSimpleDeviceTypeId());
-        } catch (IOException e) {
-            RoboVMPlugin.log(e);
-        }
+        wc.setAttribute(IOSSimulatorLaunchConfigurationDelegate.ATTR_IOS_SIM_DEVICE_TYPE,
+                DeviceType.getBestDeviceType(getFamily()).getSimpleDeviceTypeId());
     }
 
     protected abstract DeviceFamily getFamily();
@@ -58,13 +52,7 @@ public abstract class IOSSimulatorLaunchShortcut extends AbstractProjectLaunchSh
             if (deviceTypeId == null) {
                 continue;
             }
-            DeviceType type = null;
-            try {
-                type = DeviceType.getDeviceType(RoboVMPlugin.getRoboVMHome(), deviceTypeId);
-            } catch (IOException e) {
-                RoboVMPlugin.log(e);
-                continue;
-            }
+            DeviceType type = DeviceType.getDeviceType(deviceTypeId);
             if (type != null && type.getFamily() == getFamily()) {
                 result.add(config);
             }

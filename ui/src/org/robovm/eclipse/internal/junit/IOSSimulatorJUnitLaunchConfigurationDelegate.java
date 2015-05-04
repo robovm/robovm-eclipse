@@ -27,7 +27,6 @@ import org.robovm.compiler.config.OS;
 import org.robovm.compiler.target.LaunchParameters;
 import org.robovm.compiler.target.ios.DeviceType;
 import org.robovm.compiler.target.ios.IOSSimulatorLaunchParameters;
-import org.robovm.eclipse.RoboVMPlugin;
 import org.robovm.eclipse.internal.IOSSimulatorLaunchConfigurationDelegate;
 
 /**
@@ -72,7 +71,7 @@ public class IOSSimulatorJUnitLaunchConfigurationDelegate extends AbstractJUnitL
         IOSSimulatorLaunchParameters lp = (IOSSimulatorLaunchParameters) launchParameters;
         String deviceTypeId = configuration.getAttribute(ATTR_IOS_SIM_DEVICE_TYPE, (String) null);
         if (deviceTypeId != null) {
-            lp.setDeviceType(DeviceType.getDeviceType(RoboVMPlugin.getRoboVMHome(), deviceTypeId));
+            lp.setDeviceType(DeviceType.getDeviceType(deviceTypeId));
         }
     }
 }
