@@ -85,6 +85,7 @@ import org.robovm.compiler.config.Resource;
 import org.robovm.compiler.log.Logger;
 import org.robovm.eclipse.internal.RoboVMCocoaTouchClasspathContainer;
 import org.robovm.eclipse.internal.RoboVMNature;
+import org.robovm.eclipse.internal.RoboVMProjectObserver;
 import org.robovm.eclipse.internal.ib.IBIntegratorManager;
 
 /**
@@ -200,6 +201,7 @@ public class RoboVMPlugin extends AbstractUIPlugin {
             @Override
             protected IStatus run(IProgressMonitor monitor) {
                 try {
+                    RoboVMProjectObserver.getInstance().start(monitor);
                     IBIntegratorManager.getInstance().start(monitor);
                 } catch (CoreException e) {
                     log(e);
