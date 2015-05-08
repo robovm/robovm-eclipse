@@ -101,7 +101,7 @@ public class RoboVMProjectObserver implements IResourceChangeListener {
         }
     }
     
-    private void projectChanged(IProject project) throws CoreException {        
+    private void projectChanged(final IProject project) throws CoreException {        
         
         final IJavaProject javaProject = JavaCore.create(project);        
         if(javaProject == null || !javaProject.exists()) {
