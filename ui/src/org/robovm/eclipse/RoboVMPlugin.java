@@ -63,6 +63,7 @@ import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IStartup;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -92,7 +93,7 @@ import org.robovm.eclipse.internal.ib.IBIntegratorManager;
  *
  * @version $Id$
  */
-public class RoboVMPlugin extends AbstractUIPlugin {
+public class RoboVMPlugin extends AbstractUIPlugin implements IStartup {
 
     public static final String PLUGIN_ID = "org.robovm.eclipse";
     public static final String LAUNCH_ARCH = PLUGIN_ID + ".launch.arch";
@@ -345,6 +346,9 @@ public class RoboVMPlugin extends AbstractUIPlugin {
                     && entry.getPath().toString().equals(RoboVMCocoaTouchClasspathContainer.ID)) {
                 return true;
             }
+            if(entry.getPath().lastSegment().startsWith("robovm-cocoatouch")) {
+                return true;
+            }
         }
         return false;
     }
@@ -591,5 +595,10 @@ public class RoboVMPlugin extends AbstractUIPlugin {
         IPath path = new Path(pathString);
         URL url = FileLocator.find(bundle, path, null);
         return ImageDescriptor.createFromURL(url);
+    }
+
+    @Override
+    public void earlyStartup() {
+        // nothing to-do here, startup will be called as well.
     }
 }

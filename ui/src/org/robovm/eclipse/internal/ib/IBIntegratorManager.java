@@ -48,7 +48,7 @@ public class IBIntegratorManager implements IResourceChangeListener {
     private static boolean hasIBIntegrator;
     private static IBIntegratorManager instance;
 
-    private Map<String, IBIntegratorProxy> daemons = new HashMap<String, IBIntegratorProxy>();
+    private Map<IProject, IBIntegratorProxy> daemons = new HashMap<IProject, IBIntegratorProxy>();
 
     static {
         try {
@@ -68,7 +68,7 @@ public class IBIntegratorManager implements IResourceChangeListener {
     }
 
     public IBIntegratorProxy getIBIntegrator(IProject project) {
-        return daemons.get(project.getName());
+        return daemons.get(project);
     }
 
     public void start(IProgressMonitor monitor) throws CoreException {
@@ -101,7 +101,7 @@ public class IBIntegratorManager implements IResourceChangeListener {
         }
 
         String name = project.getName();
-        IBIntegratorProxy proxy = daemons.get(name);
+        IBIntegratorProxy proxy = daemons.get(project);
         if (proxy == null) {
             try {
                 File dir = RoboVMPlugin.getBuildDir(name);
@@ -109,7 +109,7 @@ public class IBIntegratorManager implements IResourceChangeListener {
                 RoboVMPlugin.consoleDebug("Starting Interface Builder integrator daemon for project %s", name);
                 proxy = new IBIntegratorProxy(RoboVMPlugin.getRoboVMHome(), RoboVMPlugin.getConsoleLogger(), name, dir);
                 proxy.start();
-                daemons.put(name, proxy);
+                daemons.put(project, proxy);
             } catch (RuntimeException e) {
                 if (e.getClass().getSimpleName().equals("UnlicensedException")) {
                     RoboVMPlugin.getConsoleLogger().warn("Failed to start Interface Builder "
@@ -195,7 +195,7 @@ public class IBIntegratorManager implements IResourceChangeListener {
 
     private void shutdownDaemonIfRunning(IProject project) {
         String name = project.getName();
-        IBIntegratorProxy proxy = daemons.remove(name);
+        IBIntegratorProxy proxy = daemons.remove(project);
         if (proxy != null) {
             RoboVMPlugin.consoleDebug("Shutting down Interface Builder integrator daemon for project %s", name);
             proxy.shutDown();
@@ -217,13 +217,13 @@ public class IBIntegratorManager implements IResourceChangeListener {
                         IProject project = (IProject) resource;
                         String name = project.getName();
 
-                        if (project.isOpen()) {
-                            if ((delta.getFlags() & IResourceDelta.OPEN) != 0) {
+                        if (project.isOpen()) {                            
+                            if ((delta.getFlags() & IResourceDelta.OPEN) != 0 || !daemons.containsKey(project)) {
                                 // Could be a RoboVM project that just opened.
                                 projectChanged(project);
                                 return false;
                             }
-                        } else if (daemons.containsKey(name)) {
+                        } else {
                             // Project was closed. Stop the daemon.
                             shutdownDaemonIfRunning(project);
                             return false;
