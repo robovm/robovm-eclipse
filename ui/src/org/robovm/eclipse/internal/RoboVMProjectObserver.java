@@ -60,19 +60,26 @@ public class RoboVMProjectObserver implements IResourceChangeListener {
     }
 
     public void start(IProgressMonitor monitor) throws CoreException {
-        // Needed to make IJavaProject.getResolvedClasspath() work properly.
-        JavaCore.initializeAfterLoad(monitor);
+        ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
+            
+            @Override
+            public void run(IProgressMonitor innerMonitor) throws CoreException {
+             // Needed to make IJavaProject.getResolvedClasspath() work properly.
+                JavaCore.initializeAfterLoad(innerMonitor);
 
-        for (IProject p : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
-            if (p.isOpen()) {
-                try {
-                    projectChanged(p);
-                } catch (CoreException e) {
-                    RoboVMPlugin.log(e);
-                }
+                for (IProject p : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
+                    if (p.isOpen()) {
+                        try {
+                            projectChanged(p);
+                        } catch (CoreException e) {
+                            RoboVMPlugin.log(e);
+                        }
+                    }
+                }        
+                
+                ResourcesPlugin.getWorkspace().addResourceChangeListener(RoboVMProjectObserver.this);
             }
-        }
-        ResourcesPlugin.getWorkspace().addResourceChangeListener(this);
+        }, null);                
     }
     
     @Override
