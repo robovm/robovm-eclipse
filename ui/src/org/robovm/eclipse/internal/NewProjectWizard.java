@@ -113,10 +113,11 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 
             // TODO create selection screen for the template type
             String templateName = getTemplateName();
-            Templater templater = new Templater(RoboVMPlugin.getConsoleLogger(), templateName);
+            Templater templater = new Templater(templateName);
             File projectRoot = project.getLocation().toFile();
             customizeTemplate(templater);
             templater.buildProject(projectRoot);
+            RoboVMPlugin.getConsoleLogger().info("Project created in %s", projectRoot.getAbsolutePath());
 
             page1.storePreferences(project);
             IClasspathEntry[] oldClasspath = javaProject.getRawClasspath();
