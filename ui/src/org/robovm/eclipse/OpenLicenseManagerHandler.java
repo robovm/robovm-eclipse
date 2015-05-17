@@ -24,7 +24,7 @@ public class OpenLicenseManagerHandler extends AbstractHandler {
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
         try {
-            Class clazz = Class.forName("com.robovm.lm.LicenseManager");
+            Class<?> clazz = Class.forName("com.robovm.lm.LicenseManager");
             clazz.getMethod("forkUI").invoke(null);
         } catch (Throwable t) {
             throw new ExecutionException("Failed to start the RoboVM license manager UI", t);

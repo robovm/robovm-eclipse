@@ -346,7 +346,7 @@ public class RoboVMPlugin extends AbstractUIPlugin implements IStartup {
                     && entry.getPath().toString().equals(RoboVMCocoaTouchClasspathContainer.ID)) {
                 return true;
             }
-            if(entry.getPath().lastSegment().startsWith("robovm-cocoatouch")) {
+            if (entry.getPath().lastSegment().startsWith("robovm-cocoatouch")) {
                 return true;
             }
         }
@@ -504,7 +504,7 @@ public class RoboVMPlugin extends AbstractUIPlugin implements IStartup {
             configBuilder.readProjectProperties(projectRoot, isTest);
             configBuilder.readProjectConfig(projectRoot, isTest);
         } catch (IOException e) {
-            RoboVMPlugin.log(e);
+            log(e);
             throw new RuntimeException(e);
         }
 

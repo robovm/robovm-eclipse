@@ -48,7 +48,7 @@ public class IBIntegratorManager implements IResourceChangeListener {
     private static boolean hasIBIntegrator;
     private static IBIntegratorManager instance;
 
-    private Map<IProject, IBIntegratorProxy> daemons = new HashMap<IProject, IBIntegratorProxy>();
+    private final Map<IProject, IBIntegratorProxy> daemons = new HashMap<IProject, IBIntegratorProxy>();
 
     static {
         try {
@@ -86,7 +86,7 @@ public class IBIntegratorManager implements IResourceChangeListener {
             if (p.isOpen()) {
                 try {
                     projectChanged(p);
-                } catch (CoreException e) {
+                } catch (Throwable e) {
                     RoboVMPlugin.log(e);
                 }
             }
@@ -209,15 +209,14 @@ public class IBIntegratorManager implements IResourceChangeListener {
         }
 
         try {
-
             event.getDelta().accept(new IResourceDeltaVisitor() {
+                @Override
                 public boolean visit(final IResourceDelta delta) throws CoreException {
                     IResource resource = delta.getResource();
                     if ((resource.getType() & IResource.PROJECT) != 0) {
                         IProject project = (IProject) resource;
-                        String name = project.getName();
 
-                        if (project.isOpen()) {                            
+                        if (project.isOpen()) {
                             if ((delta.getFlags() & IResourceDelta.OPEN) != 0 || !daemons.containsKey(project)) {
                                 // Could be a RoboVM project that just opened.
                                 projectChanged(project);
