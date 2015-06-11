@@ -144,6 +144,9 @@ public class RoboVMProjectObserver implements IResourceChangeListener {
             }
         }
         
+        // check if there's a robovm.xml in the root of the project
+        isRoboVMProject &= project.getFile("robovm.xml").exists();        
+        
         if(isRoboVMProject) {
             if(!hasRoboVMContainer || !hasRoboVMNature) {
                 final boolean hasContainer = hasRoboVMContainer;
