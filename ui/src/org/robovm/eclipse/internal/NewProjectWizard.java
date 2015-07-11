@@ -38,7 +38,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 import org.osgi.service.prefs.BackingStoreException;
-import org.robovm.compiler.config.Config.TargetType;
+import org.robovm.compiler.target.ConsoleTarget;
 import org.robovm.eclipse.RoboVMPlugin;
 import org.robovm.templater.Templater;
 
@@ -160,8 +160,8 @@ public class NewProjectWizard extends Wizard implements INewWizard {
         public RoboVMPageOne() {
         }
 
-        protected TargetType getTargetType() {
-            return TargetType.console;
+        protected String getTargetType() {
+            return ConsoleTarget.TYPE;
         }
         
         @Override

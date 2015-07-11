@@ -33,7 +33,8 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.robovm.compiler.config.Config.TargetType;
+import org.robovm.compiler.target.ConsoleTarget;
+import org.robovm.compiler.target.ios.IOSTarget;
 
 /**
  * Creates a {@link Composite} for the new project wizards which displays a
@@ -44,10 +45,10 @@ public class TemplateChooser {
     public static class Template {
         private final String id;
         private final String name;
-        private final TargetType targetType;
+        private final String targetType;
         private final String description;
 
-        private Template(String id, TargetType targetType, String name, String description) {
+        private Template(String id, String targetType, String name, String description) {
             this.id = id;
             this.targetType = targetType;
             this.name = name;
@@ -56,11 +57,11 @@ public class TemplateChooser {
     }
 
     private static final Template[] TEMPLATES = {
-        new Template("single-view", TargetType.ios, "RoboVM iOS Single View App",
+        new Template("single-view", IOSTarget.TYPE, "RoboVM iOS Single View App",
                 "Creates a basic single view app using storyboards"),
-        new Template("default", TargetType.ios, "RoboVM iOS App without storyboards",
+        new Template("default", IOSTarget.TYPE, "RoboVM iOS App without storyboards",
                 "Creates a basic single view app without storyboards"),
-        new Template("console", TargetType.console, "RoboVM Console App", "Creates a console app for Mac OS X or Linux")
+        new Template("console", ConsoleTarget.TYPE, "RoboVM Console App", "Creates a console app for Mac OS X or Linux")
     };
 
     private FontMetrics fontMetrics = null;
@@ -68,7 +69,7 @@ public class TemplateChooser {
     private List<Template> templates;
     private Label descriptionLabel;
 
-    public TemplateChooser(Composite parent, TargetType targetType) {
+    public TemplateChooser(Composite parent, String targetType) {
         templates = new ArrayList<>();
         for (int i = 0; i < TEMPLATES.length; i++) {
             if (targetType == TEMPLATES[i].targetType) {

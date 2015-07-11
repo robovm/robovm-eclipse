@@ -22,8 +22,8 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.robovm.compiler.config.Arch;
 import org.robovm.compiler.config.Config;
-import org.robovm.compiler.config.Config.TargetType;
 import org.robovm.compiler.config.OS;
+import org.robovm.compiler.target.ios.IOSTarget;
 import org.robovm.compiler.target.ios.ProvisioningProfile;
 import org.robovm.compiler.target.ios.SigningIdentity;
 import org.robovm.eclipse.RoboVMPlugin;
@@ -66,7 +66,7 @@ public class IOSDeviceLaunchConfigurationDelegate extends AbstractLaunchConfigur
     protected Config.Builder configure(Config.Builder configBuilder,
             ILaunchConfiguration configuration, String mode) throws IOException, CoreException {
         
-        configBuilder.targetType(TargetType.ios);
+        configBuilder.targetType(IOSTarget.TYPE);
         String signingId = configuration.getAttribute(ATTR_IOS_DEVICE_SIGNING_ID, (String) null);
         String profile = configuration.getAttribute(ATTR_IOS_DEVICE_PROVISIONING_PROFILE, (String) null);
         if (SIGNING_ID_SKIP_SIGNING.equals(signingId)) {

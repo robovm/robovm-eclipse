@@ -22,11 +22,11 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.robovm.compiler.config.Arch;
 import org.robovm.compiler.config.Config;
-import org.robovm.compiler.config.Config.TargetType;
 import org.robovm.compiler.config.OS;
 import org.robovm.compiler.target.LaunchParameters;
 import org.robovm.compiler.target.ios.DeviceType;
 import org.robovm.compiler.target.ios.IOSSimulatorLaunchParameters;
+import org.robovm.compiler.target.ios.IOSTarget;
 import org.robovm.eclipse.internal.IOSSimulatorLaunchConfigurationDelegate;
 
 /**
@@ -59,7 +59,7 @@ public class IOSSimulatorJUnitLaunchConfigurationDelegate extends AbstractJUnitL
     protected Config.Builder configure(Config.Builder configBuilder,
             ILaunchConfiguration configuration, String mode) throws CoreException, IOException {
         configBuilder = super.configure(configBuilder, configuration, mode);
-        configBuilder.targetType(TargetType.ios);
+        configBuilder.targetType(IOSTarget.TYPE);
         return configBuilder;
     }
 

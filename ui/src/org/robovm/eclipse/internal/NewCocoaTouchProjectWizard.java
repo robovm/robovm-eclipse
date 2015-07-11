@@ -36,7 +36,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
-import org.robovm.compiler.config.Config.TargetType;
+import org.robovm.compiler.target.ios.IOSTarget;
 import org.robovm.eclipse.RoboVMPlugin;
 import org.robovm.templater.Templater;
 
@@ -98,8 +98,8 @@ public class NewCocoaTouchProjectWizard extends NewProjectWizard {
         private Text appIdText;
 
         @Override
-        protected TargetType getTargetType() {
-            return TargetType.ios;
+        protected String getTargetType() {
+            return IOSTarget.TYPE;
         }
 
         @Override
