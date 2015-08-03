@@ -57,7 +57,7 @@ public class AppCompilerThread extends Thread {
     }
     
     protected void doCompile() throws Exception {
-        compiler.compile();
+        compiler.build();
     }
     
     @Override

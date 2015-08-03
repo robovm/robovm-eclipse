@@ -100,7 +100,7 @@ public class CreateIPAAction implements IObjectActionDelegate {
                     configBuilder.logger(RoboVMPlugin.getConsoleLogger());
                     RoboVMPlugin.loadConfig(configBuilder, projectRoot, false);
                     configBuilder.os(OS.ios);
-                    configBuilder.arch(Arch.thumbv7);
+                    configBuilder.archs(archs);
                     configBuilder.installDir(new File(destDir));
                     configBuilder.iosSignIdentity(SigningIdentity.find(SigningIdentity.list(), signingIdentity));
                     if (provisioningProfile != null) {
@@ -123,7 +123,8 @@ public class CreateIPAAction implements IObjectActionDelegate {
                     AppCompiler compiler = new AppCompiler(config);
                     AppCompilerThread thread = new AppCompilerThread(compiler, monitor) {
                         protected void doCompile() throws Exception {
-                            compiler.createIpa(archs);
+                            compiler.build();
+                            compiler.archive();
                         }
                     };
                     thread.compile();
