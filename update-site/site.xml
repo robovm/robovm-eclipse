@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <feature url="features/org.robovm.eclipse.feature_1.6.0.201508061152.jar" id="org.robovm.eclipse.feature" version="1.6.0.201508061152">
+   <feature url="features/org.robovm.eclipse.feature_1.6.1.qualifier.jar" id="org.robovm.eclipse.feature" version="1.6.1.qualifier">
        <category name="robovm"/>
    </feature>
    <category-def name="robovm" label="RoboVM for Eclipse"/>
