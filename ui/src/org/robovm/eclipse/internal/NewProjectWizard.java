@@ -18,7 +18,9 @@ package org.robovm.eclipse.internal;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -121,7 +123,7 @@ public class NewProjectWizard extends Wizard implements INewWizard {
 
             page1.storePreferences(project);
             IClasspathEntry[] oldClasspath = javaProject.getRawClasspath();
-            List<IClasspathEntry> newClasspath = new ArrayList<IClasspathEntry>();
+            Set<IClasspathEntry> newClasspathSet = new HashSet<IClasspathEntry>();
 
             String rootSrc = javaProject.getPath().append("src").toString();
 
@@ -129,14 +131,15 @@ public class NewProjectWizard extends Wizard implements INewWizard {
                 if (entry.getEntryKind() == IClasspathEntry.CPE_CONTAINER
                         && entry.getPath().toString().equals("org.eclipse.jdt.launching.JRE_CONTAINER")) {
 
-                    newClasspath.add(JavaCore.newContainerEntry(new Path(RoboVMClasspathContainer.ID)));
+                    newClasspathSet.add(JavaCore.newContainerEntry(new Path(RoboVMClasspathContainer.ID)));
                 } else if (entry.getPath().toString().startsWith(rootSrc)) {
                     // Cannot have nested classpath entries.
-                    newClasspath.add(JavaCore.newSourceEntry(javaProject.getPath().append("src/main/java")));
+                    newClasspathSet.add(JavaCore.newSourceEntry(javaProject.getPath().append("src/main/java")));
                 } else {
-                    newClasspath.add(entry);
+                    newClasspathSet.add(entry);
                 }
             }
+            List<IClasspathEntry> newClasspath = new ArrayList<>(newClasspathSet);            
             newClasspath = customizeClasspath(newClasspath);
             javaProject.setRawClasspath(newClasspath.toArray(
                     new IClasspathEntry[newClasspath.size()]),

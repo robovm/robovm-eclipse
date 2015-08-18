@@ -16,7 +16,10 @@
  */
 package org.robovm.eclipse.internal;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.Path;
@@ -68,8 +71,9 @@ public class NewCocoaTouchProjectWizard extends NewProjectWizard {
 
     @Override
     protected List<IClasspathEntry> customizeClasspath(List<IClasspathEntry> classpath) {
-        classpath.add(JavaCore.newContainerEntry(new Path(RoboVMCocoaTouchClasspathContainer.ID)));
-        return super.customizeClasspath(classpath);
+        Set<IClasspathEntry> classpathSet = new HashSet<>(classpath);
+        classpathSet.add(JavaCore.newContainerEntry(new Path(RoboVMCocoaTouchClasspathContainer.ID)));
+        return super.customizeClasspath(new ArrayList<>(classpathSet));
     }
 
     @Override

@@ -242,6 +242,6 @@ public class RoboVMProjectObserver implements IResourceChangeListener {
         }
         
         // set the updated classpath
-        javaProject.setRawClasspath(entries.toArray(new IClasspathEntry[0]), monitor);
+        javaProject.setRawClasspath(entries.toArray(new IClasspathEntry[0]), monitor);        
     }
 }
