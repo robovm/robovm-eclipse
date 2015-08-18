@@ -145,12 +145,21 @@ public class RoboVMProjectObserver implements IResourceChangeListener {
         }
         
         // check if there's a robovm.xml in the root of the project
-        isRoboVMProject &= project.getFile("robovm.xml").exists();        
+        isRoboVMProject &= project.getFile("robovm.xml").exists();  
         
-        if(isRoboVMProject) {
-            if(!hasRoboVMContainer || !hasRoboVMNature) {
+        // check if we got a JRE container attached        
+        boolean hasJREContainer = false;
+        for(IClasspathEntry e: javaProject.getRawClasspath()) {              
+            if(e.getPath().toString().startsWith("org.eclipse.jdt.launching.JRE_CONTAINER")) {
+                hasJREContainer = true;
+            }
+        }
+        
+        if(isRoboVMProject) {                        
+            if(!hasRoboVMContainer || !hasRoboVMNature || hasJREContainer) {
                 final boolean hasContainer = hasRoboVMContainer;
-                final boolean hasNature = hasRoboVMNature;                
+                final boolean hasJRE = hasJREContainer;                        
+                final boolean hasNature = hasRoboVMNature;                   
                 
                 // we need to submit the project modification as a job
                 // as modifying the workspace tree during event notification
@@ -166,7 +175,7 @@ public class RoboVMProjectObserver implements IResourceChangeListener {
                                         RoboVMNature.configureNatures(project, monitor);
                                     }
                                     
-                                    if(!hasContainer) {                                        
+                                    if(!hasContainer || hasJRE) {                                        
                                         addClasspathContainer(javaProject, monitor, foundRoboVmLibs);
                                     }
                                 }
@@ -206,7 +215,7 @@ public class RoboVMProjectObserver implements IResourceChangeListener {
             ClasspathContainerInitializer initializer = JavaCore.getClasspathContainerInitializer(RoboVMClasspathContainer.ID);
             initializer.initialize(RoboVMClasspathContainer.PATH, javaProject);            
             entries.add(0, entry);
-        }
+        }   
         
         // remove the JRE container
         Iterator<IClasspathEntry> iter = entries.iterator();
