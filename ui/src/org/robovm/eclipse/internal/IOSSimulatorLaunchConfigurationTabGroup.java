@@ -16,6 +16,7 @@
  */
 package org.robovm.eclipse.internal;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -99,7 +100,7 @@ public class IOSSimulatorLaunchConfigurationTabGroup extends AbstractLaunchConfi
             typeLabel.setText("Device type:");
             typeLabel.setLayoutData(new GridData(GridData.BEGINNING, GridData.CENTER, false, false));
 
-            List<DeviceType> types = DeviceType.listDeviceTypes();
+            final List<DeviceType> types = DeviceType.listDeviceTypes();
             String[] deviceDisplayNames = new String[types.size()];
             for (int i = 0; i < deviceDisplayNames.length; i++) {
                 deviceDisplayNames[i] = types.get(i).getSimpleDeviceTypeId();
@@ -111,7 +112,10 @@ public class IOSSimulatorLaunchConfigurationTabGroup extends AbstractLaunchConfi
             deviceTypeCombo.addSelectionListener(new SelectionAdapter() {
                 @Override
                 public void widgetSelected(SelectionEvent event) {
-                    updateLaunchConfigurationDialog();
+                    int index = ((Combo)event.getSource()).getSelectionIndex();
+                    DeviceType type = types.get(index);
+                    updateArchs(type);
+                    updateLaunchConfigurationDialog();                    
                 }
             });
 
@@ -134,6 +138,23 @@ public class IOSSimulatorLaunchConfigurationTabGroup extends AbstractLaunchConfi
             setControl(group);
         }
 
+        private void updateArchs(DeviceType type) {
+            List<String> availableArchs = new ArrayList<String>();
+            for(int i = 0; i < RoboVMPlugin.IOS_SIM_ARCH_VALUES.length; i++) {
+                Arch arch = RoboVMPlugin.IOS_SIM_ARCH_VALUES[i];
+                for(Arch simArch: type.getArchs()) {
+                    if(arch == simArch) {
+                        availableArchs.add(POSSIBLE_ARCH_NAMES[i]);
+                        break;
+                    }
+                }
+            }
+            archCombo.setItems(availableArchs.toArray(new String[availableArchs.size()]));
+            int prefArchIndex = availableArchs.indexOf(IOSSimulatorLaunchConfigurationDelegate.DEFAULT_ARCH);
+            prefArchIndex = Math.max(0, prefArchIndex);
+            archCombo.select(prefArchIndex);
+        }
+        
         @Override
         public void initializeFrom(ILaunchConfiguration config) {
             super.initializeFrom(config);
