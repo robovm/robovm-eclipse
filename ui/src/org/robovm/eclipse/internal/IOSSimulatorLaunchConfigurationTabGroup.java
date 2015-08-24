@@ -140,18 +140,20 @@ public class IOSSimulatorLaunchConfigurationTabGroup extends AbstractLaunchConfi
 
         private void updateArchs(DeviceType type) {
             List<String> availableArchs = new ArrayList<String>();
+            int prefArchIndex = 0;
             for(int i = 0; i < RoboVMPlugin.IOS_SIM_ARCH_VALUES.length; i++) {
                 Arch arch = RoboVMPlugin.IOS_SIM_ARCH_VALUES[i];
                 for(Arch simArch: type.getArchs()) {
                     if(arch == simArch) {
                         availableArchs.add(POSSIBLE_ARCH_NAMES[i]);
+                        if(simArch == IOSSimulatorLaunchConfigurationDelegate.DEFAULT_ARCH) {
+                            prefArchIndex = availableArchs.size() - 1;
+                        }
                         break;
                     }
                 }
             }
-            archCombo.setItems(availableArchs.toArray(new String[availableArchs.size()]));
-            int prefArchIndex = availableArchs.indexOf(IOSSimulatorLaunchConfigurationDelegate.DEFAULT_ARCH);
-            prefArchIndex = Math.max(0, prefArchIndex);
+            archCombo.setItems(availableArchs.toArray(new String[availableArchs.size()]));                        
             archCombo.select(prefArchIndex);
         }
         
